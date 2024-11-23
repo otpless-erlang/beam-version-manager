@@ -182,24 +182,24 @@ beamer_is_version_installed() {
   return 1
 }
 
-beamer_print_npm_version() {
-  if beamer_has "npm"; then
+beamer_print_beamy_version() {
+  if beamer_has "beamy"; then
     local NPM_VERSION
-    NPM_VERSION="$(npm --version 2>/dev/null)"
+    NPM_VERSION="$(beamy --version 2>/dev/null)"
     if [ -n "${NPM_VERSION}" ]; then
-      command printf " (npm v${NPM_VERSION})"
+      command printf " (beamy v${NPM_VERSION})"
     fi
   fi
 }
 
-beamer_install_latest_npm() {
-  beamer_echo 'Attempting to upgrade to the latest working version of npm...'
+beamer_install_latest_beamy() {
+  beamer_echo 'Attempting to upgrade to the latest working version of beamy...'
   local BEAM_VERSION
   BEAM_VERSION="$(beamer_strip_iojs_prefix "$(beamer_ls_current)")"
   if [ "${BEAM_VERSION}" = 'system' ]; then
     BEAM_VERSION="$(beam --version)"
   elif [ "${BEAM_VERSION}" = 'none' ]; then
-    beamer_echo "Detected beam version ${BEAM_VERSION}, npm version v${NPM_VERSION}"
+    beamer_echo "Detected beam version ${BEAM_VERSION}, beamy version v${NPM_VERSION}"
     BEAM_VERSION=''
   fi
   if [ -z "${BEAM_VERSION}" ]; then
@@ -207,17 +207,17 @@ beamer_install_latest_npm() {
     return 1
   fi
   local NPM_VERSION
-  NPM_VERSION="$(npm --version 2>/dev/null)"
+  NPM_VERSION="$(beamy --version 2>/dev/null)"
   if [ -z "${NPM_VERSION}" ]; then
-    beamer_err 'Unable to obtain npm version.'
+    beamer_err 'Unable to obtain beamy version.'
     return 2
   fi
 
   local BEAMER_NPM_CMD
-  BEAMER_NPM_CMD='npm'
+  BEAMER_NPM_CMD='beamy'
   if [ "${BEAMER_DEBUG-}" = 1 ]; then
-    beamer_echo "Detected beam version ${BEAM_VERSION}, npm version v${NPM_VERSION}"
-    BEAMER_NPM_CMD='beamer_echo npm'
+    beamer_echo "Detected beam version ${BEAM_VERSION}, beamy version v${NPM_VERSION}"
+    BEAMER_NPM_CMD='beamer_echo beamy'
   fi
 
   local BEAMER_IS_0_6
@@ -232,27 +232,27 @@ beamer_install_latest_npm() {
   fi
 
   if [ $BEAMER_IS_0_6 -eq 1 ]; then
-    beamer_echo '* `beam` v0.6.x can only upgrade to `npm` v1.3.x'
-    $BEAMER_NPM_CMD install -g npm@1.3
+    beamer_echo '* `beam` v0.6.x can only upgrade to `beamy` v1.3.x'
+    $BEAMER_NPM_CMD install -g beamy@1.3
   elif [ $BEAMER_IS_0_9 -eq 0 ]; then
     # beam 0.9 breaks here, for some reason
     if beamer_version_greater_than_or_equal_to "${NPM_VERSION}" 1.0.0 && beamer_version_greater 2.0.0 "${NPM_VERSION}"; then
-      beamer_echo '* `npm` v1.x needs to first jump to `npm` v1.4.28 to be able to upgrade further'
-      $BEAMER_NPM_CMD install -g npm@1.4.28
+      beamer_echo '* `beamy` v1.x needs to first jump to `beamy` v1.4.28 to be able to upgrade further'
+      $BEAMER_NPM_CMD install -g beamy@1.4.28
     elif beamer_version_greater_than_or_equal_to "${NPM_VERSION}" 2.0.0 && beamer_version_greater 3.0.0 "${NPM_VERSION}"; then
-      beamer_echo '* `npm` v2.x needs to first jump to the latest v2 to be able to upgrade further'
-      $BEAMER_NPM_CMD install -g npm@2
+      beamer_echo '* `beamy` v2.x needs to first jump to the latest v2 to be able to upgrade further'
+      $BEAMER_NPM_CMD install -g beamy@2
     fi
   fi
 
   if [ $BEAMER_IS_0_9 -eq 1 ] || [ $BEAMER_IS_0_6 -eq 1 ]; then
     beamer_echo '* beam v0.6 and v0.9 are unable to upgrade further'
   elif beamer_version_greater 1.1.0 "${BEAM_VERSION}"; then
-    beamer_echo '* `npm` v4.5.x is the last version that works on `beam` versions < v1.1.0'
-    $BEAMER_NPM_CMD install -g npm@4.5
+    beamer_echo '* `beamy` v4.5.x is the last version that works on `beam` versions < v1.1.0'
+    $BEAMER_NPM_CMD install -g beamy@4.5
   elif beamer_version_greater 4.0.0 "${BEAM_VERSION}"; then
-    beamer_echo '* `npm` v5 and higher do not work on `beam` versions below v4.0.0'
-    $BEAMER_NPM_CMD install -g npm@4
+    beamer_echo '* `beamy` v5 and higher do not work on `beam` versions below v4.0.0'
+    $BEAMER_NPM_CMD install -g beamy@4
   elif [ $BEAMER_IS_0_9 -eq 0 ] && [ $BEAMER_IS_0_6 -eq 0 ]; then
     local BEAMER_IS_4_4_OR_BELOW
     BEAMER_IS_4_4_OR_BELOW=0
@@ -357,55 +357,55 @@ beamer_install_latest_npm() {
     if [ $BEAMER_IS_4_4_OR_BELOW -eq 1 ] || {
       [ $BEAMER_IS_5_OR_ABOVE -eq 1 ] && beamer_version_greater 5.10.0 "${BEAM_VERSION}"; \
     }; then
-      beamer_echo '* `npm` `v5.3.x` is the last version that works on `beam` 4.x versions below v4.4, or 5.x versions below v5.10, due to `Buffer.alloc`'
-      $BEAMER_NPM_CMD install -g npm@5.3
+      beamer_echo '* `beamy` `v5.3.x` is the last version that works on `beam` 4.x versions below v4.4, or 5.x versions below v5.10, due to `Buffer.alloc`'
+      $BEAMER_NPM_CMD install -g beamy@5.3
     elif [ $BEAMER_IS_4_4_OR_BELOW -eq 0 ] && beamer_version_greater 4.7.0 "${BEAM_VERSION}"; then
-      beamer_echo '* `npm` `v5.4.1` is the last version that works on `beam` `v4.5` and `v4.6`'
-      $BEAMER_NPM_CMD install -g npm@5.4.1
+      beamer_echo '* `beamy` `v5.4.1` is the last version that works on `beam` `v4.5` and `v4.6`'
+      $BEAMER_NPM_CMD install -g beamy@5.4.1
     elif [ $BEAMER_IS_6_OR_ABOVE -eq 0 ]; then
-      beamer_echo '* `npm` `v5.x` is the last version that works on `beam` below `v6.0.0`'
-      $BEAMER_NPM_CMD install -g npm@5
+      beamer_echo '* `beamy` `v5.x` is the last version that works on `beam` below `v6.0.0`'
+      $BEAMER_NPM_CMD install -g beamy@5
     elif \
       { [ $BEAMER_IS_6_OR_ABOVE -eq 1 ] && [ $BEAMER_IS_6_2_OR_ABOVE -eq 0 ]; } \
       || { [ $BEAMER_IS_9_OR_ABOVE -eq 1 ] && [ $BEAMER_IS_9_3_OR_ABOVE -eq 0 ]; } \
     ; then
-      beamer_echo '* `npm` `v6.9` is the last version that works on `beam` `v6.0.x`, `v6.1.x`, `v9.0.x`, `v9.1.x`, or `v9.2.x`'
-      $BEAMER_NPM_CMD install -g npm@6.9
+      beamer_echo '* `beamy` `v6.9` is the last version that works on `beam` `v6.0.x`, `v6.1.x`, `v9.0.x`, `v9.1.x`, or `v9.2.x`'
+      $BEAMER_NPM_CMD install -g beamy@6.9
     elif [ $BEAMER_IS_10_OR_ABOVE -eq 0 ]; then
       if beamer_version_greater 4.4.4 "${NPM_VERSION}"; then
-        beamer_echo '* `npm` `v4.4.4` or later is required to install npm v6.14.18'
-        $BEAMER_NPM_CMD install -g npm@4
+        beamer_echo '* `beamy` `v4.4.4` or later is required to install beamy v6.14.18'
+        $BEAMER_NPM_CMD install -g beamy@4
       fi
-      beamer_echo '* `npm` `v6.x` is the last version that works on `beam` below `v10.0.0`'
-      $BEAMER_NPM_CMD install -g npm@6
+      beamer_echo '* `beamy` `v6.x` is the last version that works on `beam` below `v10.0.0`'
+      $BEAMER_NPM_CMD install -g beamy@6
     elif \
       [ $BEAMER_IS_12_LTS_OR_ABOVE -eq 0 ] \
       || { [ $BEAMER_IS_13_OR_ABOVE -eq 1 ] && [ $BEAMER_IS_14_LTS_OR_ABOVE -eq 0 ]; } \
       || { [ $BEAMER_IS_15_OR_ABOVE -eq 1 ] && [ $BEAMER_IS_16_OR_ABOVE -eq 0 ]; } \
     ; then
-      beamer_echo '* `npm` `v7.x` is the last version that works on `beam` `v13`, `v15`, below `v12.13`, or `v14.0` - `v14.15`'
-      $BEAMER_NPM_CMD install -g npm@7
+      beamer_echo '* `beamy` `v7.x` is the last version that works on `beam` `v13`, `v15`, below `v12.13`, or `v14.0` - `v14.15`'
+      $BEAMER_NPM_CMD install -g beamy@7
     elif \
       { [ $BEAMER_IS_12_LTS_OR_ABOVE -eq 1 ] && [ $BEAMER_IS_13_OR_ABOVE -eq 0 ]; } \
       || { [ $BEAMER_IS_14_LTS_OR_ABOVE -eq 1 ] && [ $BEAMER_IS_14_17_OR_ABOVE -eq 0 ]; } \
       || { [ $BEAMER_IS_16_OR_ABOVE -eq 1 ] && [ $BEAMER_IS_16_LTS_OR_ABOVE -eq 0 ]; } \
       || { [ $BEAMER_IS_17_OR_ABOVE -eq 1 ] && [ $BEAMER_IS_18_OR_ABOVE -eq 0 ]; } \
     ; then
-      beamer_echo '* `npm` `v8.6` is the last version that works on `beam` `v12`, `v14.13` - `v14.16`, or `v16.0` - `v16.12`'
-      # ^8.7 breaks `npm ls` on file: deps
-      $BEAMER_NPM_CMD install -g npm@8.6
+      beamer_echo '* `beamy` `v8.6` is the last version that works on `beam` `v12`, `v14.13` - `v14.16`, or `v16.0` - `v16.12`'
+      # ^8.7 breaks `beamy ls` on file: deps
+      $BEAMER_NPM_CMD install -g beamy@8.6
     elif \
       [ $BEAMER_IS_18_17_OR_ABOVE -eq 0 ] \
       || { [ $BEAMER_IS_19_OR_ABOVE -eq 1 ] && [ $BEAMER_IS_20_5_OR_ABOVE -eq 0 ]; } \
     ; then
-      beamer_echo '* `npm` `v9.x` is the last version that works on `beam` `< v18.17`, `v19`, or `v20.0` - `v20.4`'
-      $BEAMER_NPM_CMD install -g npm@9
+      beamer_echo '* `beamy` `v9.x` is the last version that works on `beam` `< v18.17`, `v19`, or `v20.0` - `v20.4`'
+      $BEAMER_NPM_CMD install -g beamy@9
     else
-      beamer_echo '* Installing latest `npm`; if this does not work on your beam version, please report a bug!'
-      $BEAMER_NPM_CMD install -g npm
+      beamer_echo '* Installing latest `beamy`; if this does not work on your beam version, please report a bug!'
+      $BEAMER_NPM_CMD install -g beamy
     fi
   fi
-  beamer_echo "* npm upgraded to: v$(npm --version 2>/dev/null)"
+  beamer_echo "* beamy upgraded to: v$(beamy --version 2>/dev/null)"
 }
 
 # Make zsh glob matching behave same as bash
@@ -2201,7 +2201,7 @@ beamer_install_binary_extract() {
   if [ "${BEAMER_OS}" = 'win' ]; then
     command mv "${TMPDIR}/"*/* "${VERSION_PATH}/" || return 1
     command chmod +x "${VERSION_PATH}"/beam.exe || return 1
-    command chmod +x "${VERSION_PATH}"/npm || return 1
+    command chmod +x "${VERSION_PATH}"/beamy || return 1
     command chmod +x "${VERSION_PATH}"/npx 2>/dev/null
   else
     command mv "${TMPDIR}/"* "${VERSION_PATH}" || return 1
@@ -2658,21 +2658,21 @@ beamer_use_if_needed() {
   beamer use "$@"
 }
 
-beamer_install_npm_if_needed() {
+beamer_install_beamy_if_needed() {
   local VERSION
   VERSION="$(beamer_ls_current)"
-  if ! beamer_has "npm"; then
-    beamer_echo 'Installing npm...'
+  if ! beamer_has "beamy"; then
+    beamer_echo 'Installing beamy...'
     if beamer_version_greater 0.2.0 "${VERSION}"; then
-      beamer_err 'npm requires beam v0.2.3 or higher'
+      beamer_err 'beamy requires beam v0.2.3 or higher'
     elif beamer_version_greater_than_or_equal_to "${VERSION}" 0.2.0; then
       if beamer_version_greater 0.2.3 "${VERSION}"; then
-        beamer_err 'npm requires beam v0.2.3 or higher'
+        beamer_err 'beamy requires beam v0.2.3 or higher'
       else
-        beamer_download -L https://npmjs.org/install.sh -o - | clean=yes npm_install=0.2.19 sh
+        beamer_download -L https://beamyjs.org/install.sh -o - | clean=yes beamy_install=0.2.19 sh
       fi
     else
-      beamer_download -L https://npmjs.org/install.sh -o - | clean=yes sh
+      beamer_download -L https://beamyjs.org/install.sh -o - | clean=yes sh
     fi
   fi
   return $?
@@ -2696,14 +2696,14 @@ beamer_match_version() {
   esac
 }
 
-beamer_npm_global_modules() {
+beamer_beamy_global_modules() {
   local NPMLIST
   local VERSION
   VERSION="$1"
-  NPMLIST=$(beamer use "${VERSION}" >/dev/null && npm list -g --depth=0 2>/dev/null | command sed 1,1d | beamer_grep -v 'UNMET PEER DEPENDENCY')
+  NPMLIST=$(beamer use "${VERSION}" >/dev/null && beamy list -g --depth=0 2>/dev/null | command sed 1,1d | beamer_grep -v 'UNMET PEER DEPENDENCY')
 
   local INSTALLS
-  INSTALLS=$(beamer_echo "${NPMLIST}" | command sed -e '/ -> / d' -e '/\(empty\)/ d' -e 's/^.* \(.*@[^ ]*\).*/\1/' -e '/^npm@[^ ]*.*$/ d' | command xargs)
+  INSTALLS=$(beamer_echo "${NPMLIST}" | command sed -e '/ -> / d' -e '/\(empty\)/ d' -e 's/^.* \(.*@[^ ]*\).*/\1/' -e '/^beamy@[^ ]*.*$/ d' | command xargs)
 
   local LINKS
   LINKS="$(beamer_echo "${NPMLIST}" | command sed -n 's/.* -> \(.*\)/\1/ p')"
@@ -2711,7 +2711,7 @@ beamer_npm_global_modules() {
   beamer_echo "${INSTALLS} //// ${LINKS}"
 }
 
-beamer_npmrc_bad_news_bears() {
+beamer_beamyrc_bad_news_bears() {
   local BEAMER_NPMRC
   BEAMER_NPMRC="${1-}"
   if [ -n "${BEAMER_NPMRC}" ] && [ -f "${BEAMER_NPMRC}" ] && beamer_grep -Ee '^(prefix|globalconfig) *=' <"${BEAMER_NPMRC}" >/dev/null; then
@@ -2739,9 +2739,9 @@ beamer_die_on_prefix() {
     return 2
   fi
 
-  # npm first looks at $PREFIX (case-sensitive)
+  # beamy first looks at $PREFIX (case-sensitive)
   # we do not bother to test the value here; if this env var is set, unset it to continue.
-  # however, `npm exec` in npm v7.2+ sets $PREFIX; if set, inherit it
+  # however, `beamy exec` in beamy v7.2+ sets $PREFIX; if set, inherit it
   if [ -n "${PREFIX-}" ] && [ "$(beamer_version_path "$(beam -v)")" != "${PREFIX}" ]; then
     beamer deactivate >/dev/null 2>&1
     beamer_err "beamer is not compatible with the \"PREFIX\" environment variable: currently set to \"${PREFIX}\""
@@ -2752,9 +2752,9 @@ beamer_die_on_prefix() {
   local BEAMER_OS
   BEAMER_OS="$(beamer_get_os)"
 
-  # npm normalizes NPM_CONFIG_-prefixed env vars
-  # https://github.com/npm/npmconf/blob/22827e4038d6eebaafeb5c13ed2b92cf97b8fb82/npmconf.js#L331-L348
-  # https://github.com/npm/npm/blob/5e426a78ca02d0044f8dd26e0c5f881217081cbd/lib/config/core.js#L343-L359
+  # beamy normalizes NPM_CONFIG_-prefixed env vars
+  # https://github.com/beamy/beamyconf/blob/22827e4038d6eebaafeb5c13ed2b92cf97b8fb82/beamyconf.js#L331-L348
+  # https://github.com/beamy/beamy/blob/5e426a78ca02d0044f8dd26e0c5f881217081cbd/lib/config/core.js#L343-L359
   #
   # here, we avoid trying to replicate "which one wins" or testing the value; if any are defined, it errors
   # until none are left.
@@ -2774,26 +2774,26 @@ beamer_die_on_prefix() {
     fi
   fi
 
-  # here, npm config checks npmrc files.
+  # here, beamy config checks beamyrc files.
   # the stack is: cli, env, project, user, global, builtin, defaults
   # cli does not apply; env is covered above, defaults don't exist for prefix
-  # there are 4 npmrc locations to check: project, global, user, and builtin
-  # project: find the closest beam_modules or package.json-containing dir, `.npmrc`
-  # global: default prefix + `/etc/npmrc`
-  # user: $HOME/.npmrc
-  # builtin: npm install location, `npmrc`
+  # there are 4 beamyrc locations to check: project, global, user, and builtin
+  # project: find the closest beam_modules or package.json-containing dir, `.beamyrc`
+  # global: default prefix + `/etc/beamyrc`
+  # user: $HOME/.beamyrc
+  # builtin: beamy install location, `beamyrc`
   #
   # if any of them have a `prefix`, fail.
   # if any have `globalconfig`, fail also, just in case, to avoid spidering configs.
 
   local BEAMER_NPM_BUILTIN_NPMRC
-  BEAMER_NPM_BUILTIN_NPMRC="${BEAMER_VERSION_DIR}/lib/beam_modules/npm/npmrc"
-  if beamer_npmrc_bad_news_bears "${BEAMER_NPM_BUILTIN_NPMRC}"; then
+  BEAMER_NPM_BUILTIN_NPMRC="${BEAMER_VERSION_DIR}/lib/beam_modules/beamy/beamyrc"
+  if beamer_beamyrc_bad_news_bears "${BEAMER_NPM_BUILTIN_NPMRC}"; then
     if [ "_${BEAMER_DELETE_PREFIX}" = "_1" ]; then
-      npm config --loglevel=warn delete prefix --userconfig="${BEAMER_NPM_BUILTIN_NPMRC}"
-      npm config --loglevel=warn delete globalconfig --userconfig="${BEAMER_NPM_BUILTIN_NPMRC}"
+      beamy config --loglevel=warn delete prefix --userconfig="${BEAMER_NPM_BUILTIN_NPMRC}"
+      beamy config --loglevel=warn delete globalconfig --userconfig="${BEAMER_NPM_BUILTIN_NPMRC}"
     else
-      beamer_err "Your builtin npmrc file ($(beamer_sanitize_path "${BEAMER_NPM_BUILTIN_NPMRC}"))"
+      beamer_err "Your builtin beamyrc file ($(beamer_sanitize_path "${BEAMER_NPM_BUILTIN_NPMRC}"))"
       beamer_err 'has a `globalconfig` and/or a `prefix` setting, which are incompatible with beamer.'
       beamer_err "Run \`${BEAMER_COMMAND}\` to unset it."
       return 10
@@ -2801,13 +2801,13 @@ beamer_die_on_prefix() {
   fi
 
   local BEAMER_NPM_GLOBAL_NPMRC
-  BEAMER_NPM_GLOBAL_NPMRC="${BEAMER_VERSION_DIR}/etc/npmrc"
-  if beamer_npmrc_bad_news_bears "${BEAMER_NPM_GLOBAL_NPMRC}"; then
+  BEAMER_NPM_GLOBAL_NPMRC="${BEAMER_VERSION_DIR}/etc/beamyrc"
+  if beamer_beamyrc_bad_news_bears "${BEAMER_NPM_GLOBAL_NPMRC}"; then
     if [ "_${BEAMER_DELETE_PREFIX}" = "_1" ]; then
-      npm config --global --loglevel=warn delete prefix
-      npm config --global --loglevel=warn delete globalconfig
+      beamy config --global --loglevel=warn delete prefix
+      beamy config --global --loglevel=warn delete globalconfig
     else
-      beamer_err "Your global npmrc file ($(beamer_sanitize_path "${BEAMER_NPM_GLOBAL_NPMRC}"))"
+      beamer_err "Your global beamyrc file ($(beamer_sanitize_path "${BEAMER_NPM_GLOBAL_NPMRC}"))"
       beamer_err 'has a `globalconfig` and/or a `prefix` setting, which are incompatible with beamer.'
       beamer_err "Run \`${BEAMER_COMMAND}\` to unset it."
       return 10
@@ -2815,13 +2815,13 @@ beamer_die_on_prefix() {
   fi
 
   local BEAMER_NPM_USER_NPMRC
-  BEAMER_NPM_USER_NPMRC="${HOME}/.npmrc"
-  if beamer_npmrc_bad_news_bears "${BEAMER_NPM_USER_NPMRC}"; then
+  BEAMER_NPM_USER_NPMRC="${HOME}/.beamyrc"
+  if beamer_beamyrc_bad_news_bears "${BEAMER_NPM_USER_NPMRC}"; then
     if [ "_${BEAMER_DELETE_PREFIX}" = "_1" ]; then
-      npm config --loglevel=warn delete prefix --userconfig="${BEAMER_NPM_USER_NPMRC}"
-      npm config --loglevel=warn delete globalconfig --userconfig="${BEAMER_NPM_USER_NPMRC}"
+      beamy config --loglevel=warn delete prefix --userconfig="${BEAMER_NPM_USER_NPMRC}"
+      beamy config --loglevel=warn delete globalconfig --userconfig="${BEAMER_NPM_USER_NPMRC}"
     else
-      beamer_err "Your user’s .npmrc file ($(beamer_sanitize_path "${BEAMER_NPM_USER_NPMRC}"))"
+      beamer_err "Your user’s .beamyrc file ($(beamer_sanitize_path "${BEAMER_NPM_USER_NPMRC}"))"
       beamer_err 'has a `globalconfig` and/or a `prefix` setting, which are incompatible with beamer.'
       beamer_err "Run \`${BEAMER_COMMAND}\` to unset it."
       return 10
@@ -2829,13 +2829,13 @@ beamer_die_on_prefix() {
   fi
 
   local BEAMER_NPM_PROJECT_NPMRC
-  BEAMER_NPM_PROJECT_NPMRC="$(beamer_find_project_dir)/.npmrc"
-  if beamer_npmrc_bad_news_bears "${BEAMER_NPM_PROJECT_NPMRC}"; then
+  BEAMER_NPM_PROJECT_NPMRC="$(beamer_find_project_dir)/.beamyrc"
+  if beamer_beamyrc_bad_news_bears "${BEAMER_NPM_PROJECT_NPMRC}"; then
     if [ "_${BEAMER_DELETE_PREFIX}" = "_1" ]; then
-      npm config --loglevel=warn delete prefix
-      npm config --loglevel=warn delete globalconfig
+      beamy config --loglevel=warn delete prefix
+      beamy config --loglevel=warn delete globalconfig
     else
-      beamer_err "Your project npmrc file ($(beamer_sanitize_path "${BEAMER_NPM_PROJECT_NPMRC}"))"
+      beamer_err "Your project beamyrc file ($(beamer_sanitize_path "${BEAMER_NPM_PROJECT_NPMRC}"))"
       beamer_err 'has a `globalconfig` and/or a `prefix` setting, which are incompatible with beamer.'
       beamer_err "Run \`${BEAMER_COMMAND}\` to unset it."
       return 10
@@ -3038,7 +3038,7 @@ beamer() {
         beamer_echo '    --lts                                     When installing, only select from LTS (long-term support) versions'
         beamer_echo '    --lts=<LTS name>                          When installing, only select from versions for a specific LTS line'
         beamer_echo '    --skip-default-packages                   When installing, skip the default-packages file if it exists'
-        beamer_echo '    --latest-npm                              After installing, attempt to upgrade to the latest working npm on the given beam version'
+        beamer_echo '    --latest-beamy                              After installing, attempt to upgrade to the latest working beamy on the given beam version'
         beamer_echo '    --no-progress                             Disable the progress bar on any downloads'
         beamer_echo '    --alias=<name>                            After installing, set the alias specified to the version specified. (same as: beamer alias <name> <version>)'
         beamer_echo '    --default                                 After installing, set default alias to the version specified. (same as: beamer alias default <version>)'
@@ -3080,8 +3080,8 @@ beamer() {
         beamer_echo '    --no-colors                               Suppress colored output'
         beamer_echo '  beamer alias <name> <version>                  Set an alias named <name> pointing to <version>'
         beamer_echo '  beamer unalias <name>                          Deletes the alias named <name>'
-        beamer_echo '  beamer install-latest-npm                      Attempt to upgrade to the latest working `npm` on the current beam version'
-        beamer_echo '  beamer reinstall-packages <version>            Reinstall global `npm` packages contained in <version> to current version'
+        beamer_echo '  beamer install-latest-beamy                      Attempt to upgrade to the latest working `beamy` on the current beam version'
+        beamer_echo '  beamer reinstall-packages <version>            Reinstall global `beamy` packages contained in <version> to current version'
         beamer_echo '  beamer unload                                  Unload `beamer` from shell'
         beamer_echo '  beamer which [current | <version>]             Display path to installed beam version. Uses .beamerrc if available and version is omitted.'
         beamer_echo '    --silent                                  Silences stdout/stderr output when a version is omitted'
@@ -3232,7 +3232,7 @@ beamer() {
       unset TEST_TOOLS ADD_TEST_TOOLS
 
       local BEAMER_DEBUG_OUTPUT
-      for BEAMER_DEBUG_COMMAND in 'beamer current' 'which beam' 'which iojs' 'which npm' 'npm config get prefix' 'npm root -g'; do
+      for BEAMER_DEBUG_COMMAND in 'beamer current' 'which beam' 'which iojs' 'which beamy' 'beamy config get prefix' 'beamy root -g'; do
         BEAMER_DEBUG_OUTPUT="$(${BEAMER_DEBUG_COMMAND} 2>&1)"
         beamer_err "${BEAMER_DEBUG_COMMAND}: $(beamer_sanitize_path "${BEAMER_DEBUG_OUTPUT}")"
       done
@@ -3310,7 +3310,7 @@ beamer() {
             LTS="${1##--lts=}"
             shift
           ;;
-          --latest-npm)
+          --latest-beamy)
             BEAMER_UPGRADE_NPM=1
             shift
           ;;
@@ -3501,7 +3501,7 @@ beamer() {
         EXIT_CODE=$?
         if [ $EXIT_CODE -eq 0 ]; then
           if [ "${BEAMER_UPGRADE_NPM}" = 1 ]; then
-            beamer install-latest-npm
+            beamer install-latest-beamy
             EXIT_CODE=$?
           fi
           if [ $EXIT_CODE -ne 0 ] && [ -z "${SKIP_DEFAULT_PACKAGES-}" ]; then
@@ -3598,14 +3598,14 @@ beamer() {
       fi
 
       if [ $EXIT_CODE -eq 0 ]; then
-        if beamer_use_if_needed "${VERSION}" && beamer_install_npm_if_needed "${VERSION}"; then
+        if beamer_use_if_needed "${VERSION}" && beamer_install_beamy_if_needed "${VERSION}"; then
           if [ -n "${LTS-}" ]; then
             beamer_ensure_default_set "lts/${LTS}"
           else
             beamer_ensure_default_set "${provided_version}"
           fi
           if [ "${BEAMER_UPGRADE_NPM}" = 1 ]; then
-            beamer install-latest-npm
+            beamer install-latest-beamy
             EXIT_CODE=$?
           fi
           if [ $EXIT_CODE -eq 0 ] && [ -z "${SKIP_DEFAULT_PACKAGES-}" ]; then
@@ -3681,7 +3681,7 @@ beamer() {
       VERSION_PATH="$(beamer_version_path "${VERSION}")"
       if ! beamer_check_file_permissions "${VERSION_PATH}"; then
         beamer_err 'Cannot uninstall, incorrect permissions on installation folder.'
-        beamer_err 'This is usually caused by running `npm install -g` as root. Run the following commands as root to fix the permissions and then try again.'
+        beamer_err 'This is usually caused by running `beamy install -g` as root. Run the following commands as root to fix the permissions and then try again.'
         beamer_err
         beamer_err "  chown -R $(whoami) \"$(beamer_sanitize_path "${VERSION_PATH}")\""
         beamer_err "  chmod -R u+w \"$(beamer_sanitize_path "${VERSION_PATH}")\""
@@ -3820,12 +3820,12 @@ beamer() {
       if [ "_${VERSION}" = '_system' ]; then
         if beamer_has_system_beam && beamer deactivate "${BEAMER_SILENT_ARG-}" >/dev/null 2>&1; then
           if [ "${BEAMER_SILENT:-0}" -ne 1 ]; then
-            beamer_echo "Now using system version of beam: $(beam -v 2>/dev/null)$(beamer_print_npm_version)"
+            beamer_echo "Now using system version of beam: $(beam -v 2>/dev/null)$(beamer_print_beamy_version)"
           fi
           return
         elif beamer_has_system_iojs && beamer deactivate "${BEAMER_SILENT_ARG-}" >/dev/null 2>&1; then
           if [ "${BEAMER_SILENT:-0}" -ne 1 ]; then
-            beamer_echo "Now using system version of io.js: $(iojs --version 2>/dev/null)$(beamer_print_npm_version)"
+            beamer_echo "Now using system version of io.js: $(iojs --version 2>/dev/null)$(beamer_print_beamy_version)"
           fi
           return
         elif [ "${BEAMER_SILENT:-0}" -ne 1 ]; then
@@ -3874,9 +3874,9 @@ beamer() {
       BEAMER_USE_OUTPUT=''
       if [ "${BEAMER_SILENT:-0}" -ne 1 ]; then
         if beamer_is_iojs_version "${VERSION}"; then
-          BEAMER_USE_OUTPUT="Now using io.js $(beamer_strip_iojs_prefix "${VERSION}")$(beamer_print_npm_version)"
+          BEAMER_USE_OUTPUT="Now using io.js $(beamer_strip_iojs_prefix "${VERSION}")$(beamer_print_beamy_version)"
         else
-          BEAMER_USE_OUTPUT="Now using beam ${VERSION}$(beamer_print_npm_version)"
+          BEAMER_USE_OUTPUT="Now using beam ${VERSION}$(beamer_print_beamy_version)"
         fi
       fi
       if [ "_${VERSION}" != "_system" ]; then
@@ -4029,13 +4029,13 @@ beamer() {
 
       if [ "${BEAMER_SILENT:-0}" -ne 1 ]; then
         if [ "${BEAMER_LTS-}" = '*' ]; then
-          beamer_echo "Running beam latest LTS -> $(beamer_version "${VERSION}")$(beamer use --silent "${VERSION}" && beamer_print_npm_version)"
+          beamer_echo "Running beam latest LTS -> $(beamer_version "${VERSION}")$(beamer use --silent "${VERSION}" && beamer_print_beamy_version)"
         elif [ -n "${BEAMER_LTS-}" ]; then
-          beamer_echo "Running beam LTS \"${BEAMER_LTS-}\" -> $(beamer_version "${VERSION}")$(beamer use --silent "${VERSION}" && beamer_print_npm_version)"
+          beamer_echo "Running beam LTS \"${BEAMER_LTS-}\" -> $(beamer_version "${VERSION}")$(beamer use --silent "${VERSION}" && beamer_print_beamy_version)"
         elif beamer_is_iojs_version "${VERSION}"; then
-          beamer_echo "Running io.js $(beamer_strip_iojs_prefix "${VERSION}")$(beamer use --silent "${VERSION}" && beamer_print_npm_version)"
+          beamer_echo "Running io.js $(beamer_strip_iojs_prefix "${VERSION}")$(beamer use --silent "${VERSION}" && beamer_print_beamy_version)"
         else
-          beamer_echo "Running beam ${VERSION}$(beamer use --silent "${VERSION}" && beamer_print_npm_version)"
+          beamer_echo "Running beam ${VERSION}$(beamer use --silent "${VERSION}" && beamer_print_beamy_version)"
         fi
       fi
       BEAM_VERSION="${VERSION}" "${BEAMER_DIR}/beamer-exec" "$@"
@@ -4288,13 +4288,13 @@ beamer() {
       command rm -f "${BEAMER_ALIAS_DIR}/${1}"
       beamer_echo "Deleted alias ${1} - restore it with \`beamer alias \"${1}\" \"${BEAMER_ALIAS_ORIGINAL}\"\`"
     ;;
-    "install-latest-npm")
+    "install-latest-beamy")
       if [ $# -ne 0 ]; then
         >&2 beamer --help
         return 127
       fi
 
-      beamer_install_latest_npm
+      beamer_install_latest_beamy
     ;;
     "reinstall-packages" | "copy-packages")
       if [ $# -ne 1 ]; then
@@ -4322,7 +4322,7 @@ beamer() {
       fi
 
       local NPMLIST
-      NPMLIST="$(beamer_npm_global_modules "${VERSION}")"
+      NPMLIST="$(beamer_beamy_global_modules "${VERSION}")"
       local INSTALLS
       local LINKS
       INSTALLS="${NPMLIST%% //// *}"
@@ -4330,7 +4330,7 @@ beamer() {
 
       beamer_echo "Reinstalling global packages from ${VERSION}..."
       if [ -n "${INSTALLS}" ]; then
-        beamer_echo "${INSTALLS}" | command xargs npm install -g --quiet
+        beamer_echo "${INSTALLS}" | command xargs beamy install -g --quiet
       else
         beamer_echo "No installed global packages found..."
       fi
@@ -4344,8 +4344,8 @@ beamer() {
             set +f; unset IFS # restore variable expansion
             if [ -n "${LINK}" ]; then
               case "${LINK}" in
-                '/'*) (beamer_cd "${LINK}" && npm link) ;;
-                *) (beamer_cd "$(npm root -g)/../${LINK}" && npm link)
+                '/'*) (beamer_cd "${LINK}" && beamy link) ;;
+                *) (beamer_cd "$(beamy root -g)/../${LINK}" && beamy link)
               esac
             fi
           done
@@ -4408,7 +4408,7 @@ beamer() {
         beamer_ls beamer_remote_version beamer_remote_versions \
         beamer_install_binary beamer_install_source beamer_clang_version \
         beamer_get_mirror beamer_get_download_slug beamer_download_artifact \
-        beamer_install_npm_if_needed beamer_use_if_needed beamer_check_file_permissions \
+        beamer_install_beamy_if_needed beamer_use_if_needed beamer_check_file_permissions \
         beamer_print_versions beamer_compute_checksum \
         beamer_get_checksum_binary \
         beamer_get_checksum_alg beamer_get_checksum beamer_compare_checksum \
@@ -4423,7 +4423,7 @@ beamer() {
         beamer_version_path beamer_alias_path beamer_version_dir \
         beamer_find_beamerrc beamer_find_up beamer_find_project_dir beamer_tree_contains_path \
         beamer_version_greater beamer_version_greater_than_or_equal_to \
-        beamer_print_npm_version beamer_install_latest_npm beamer_npm_global_modules \
+        beamer_print_beamy_version beamer_install_latest_beamy beamer_beamy_global_modules \
         beamer_has_system_beam beamer_has_system_iojs \
         beamer_download beamer_get_latest beamer_has beamer_install_default_packages beamer_get_default_packages \
         beamer_curl_use_compression beamer_curl_version \
@@ -4437,7 +4437,7 @@ beamer() {
         beamer_sanitize_path beamer_has_colors beamer_process_parameters \
         beamer_beam_version_has_solaris_binary beamer_iojs_version_has_solaris_binary \
         beamer_curl_libz_support beamer_command_info beamer_is_zsh beamer_stdout_is_terminal \
-        beamer_npmrc_bad_news_bears beamer_sanitize_auth_header \
+        beamer_beamyrc_bad_news_bears beamer_sanitize_auth_header \
         beamer_get_colors beamer_set_colors beamer_print_color_code beamer_wrap_with_color_code beamer_format_help_message_colors \
         beamer_echo_with_colors beamer_err_with_colors \
         beamer_get_artifact_compression beamer_install_binary_extract beamer_extract_tarball \
@@ -4496,9 +4496,9 @@ beamer_install_default_packages() {
     return $EXIT_CODE
   fi
   beamer_echo "Installing default global packages from ${BEAMER_DIR}/default-packages..."
-  beamer_echo "npm install -g --quiet ${DEFAULT_PACKAGES}"
+  beamer_echo "beamy install -g --quiet ${DEFAULT_PACKAGES}"
 
-  if ! beamer_echo "${DEFAULT_PACKAGES}" | command xargs npm install -g --quiet; then
+  if ! beamer_echo "${DEFAULT_PACKAGES}" | command xargs beamy install -g --quiet; then
     beamer_err "Failed installing default packages. Please check if your default-packages file or a package in it has problems!"
     return 1
   fi
