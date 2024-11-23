@@ -25,8 +25,8 @@ beamer_default_install_dir() {
 }
 
 beamer_install_dir() {
-  if [ -n "$NVM_DIR" ]; then
-    printf %s "${NVM_DIR}"
+  if [ -n "$BEAMER_DIR" ]; then
+    printf %s "${BEAMER_DIR}"
   else
     beamer_default_install_dir
   fi
@@ -50,16 +50,16 @@ beamer_profile_is_bash_or_zsh() {
 }
 
 #
-# Outputs the location to NVM depending on:
-# * The availability of $NVM_SOURCE
-# * The presence of $NVM_INSTALL_GITHUB_REPO
+# Outputs the location to BEAMER depending on:
+# * The availability of $BEAMER_SOURCE
+# * The presence of $BEAMER_INSTALL_GITHUB_REPO
 # * The method used ("script" or "git" in the script, defaults to "git")
-# NVM_SOURCE always takes precedence unless the method is "script-beamer-exec"
+# BEAMER_SOURCE always takes precedence unless the method is "script-beamer-exec"
 #
 beamer_source() {
-  local NVM_GITHUB_REPO
-  NVM_GITHUB_REPO="${NVM_INSTALL_GITHUB_REPO:-beamer-sh/beamer}"
-  if [ "${NVM_GITHUB_REPO}" != 'beamer-sh/beamer' ]; then
+  local BEAMER_GITHUB_REPO
+  BEAMER_GITHUB_REPO="${BEAMER_INSTALL_GITHUB_REPO:-beamer-sh/beamer}"
+  if [ "${BEAMER_GITHUB_REPO}" != 'beamer-sh/beamer' ]; then
     { beamer_echo >&2 "$(cat)" ; } << EOF
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 @    WARNING: REMOTE REPO IDENTIFICATION HAS CHANGED!     @
@@ -67,34 +67,34 @@ beamer_source() {
 IT IS POSSIBLE THAT SOMEONE IS DOING SOMETHING NASTY!
 
 The default repository for this install is \`beamer-sh/beamer\`,
-but the environment variables \`\$NVM_INSTALL_GITHUB_REPO\` is
-currently set to \`${NVM_GITHUB_REPO}\`.
+but the environment variables \`\$BEAMER_INSTALL_GITHUB_REPO\` is
+currently set to \`${BEAMER_GITHUB_REPO}\`.
 
 If this is not intentional, interrupt this installation and
 verify your environment variables.
 EOF
   fi
-  local NVM_VERSION
-  NVM_VERSION="${NVM_INSTALL_VERSION:-$(beamer_latest_version)}"
-  local NVM_METHOD
-  NVM_METHOD="$1"
-  local NVM_SOURCE_URL
-  NVM_SOURCE_URL="$NVM_SOURCE"
-  if [ "_$NVM_METHOD" = "_script-beamer-exec" ]; then
-    NVM_SOURCE_URL="https://raw.githubusercontent.com/${NVM_GITHUB_REPO}/${NVM_VERSION}/beamer-exec"
-  elif [ "_$NVM_METHOD" = "_script-beamer-bash-completion" ]; then
-    NVM_SOURCE_URL="https://raw.githubusercontent.com/${NVM_GITHUB_REPO}/${NVM_VERSION}/bash_completion"
-  elif [ -z "$NVM_SOURCE_URL" ]; then
-    if [ "_$NVM_METHOD" = "_script" ]; then
-      NVM_SOURCE_URL="https://raw.githubusercontent.com/${NVM_GITHUB_REPO}/${NVM_VERSION}/beamer.sh"
-    elif [ "_$NVM_METHOD" = "_git" ] || [ -z "$NVM_METHOD" ]; then
-      NVM_SOURCE_URL="https://github.com/${NVM_GITHUB_REPO}.git"
+  local BEAMER_VERSION
+  BEAMER_VERSION="${BEAMER_INSTALL_VERSION:-$(beamer_latest_version)}"
+  local BEAMER_METHOD
+  BEAMER_METHOD="$1"
+  local BEAMER_SOURCE_URL
+  BEAMER_SOURCE_URL="$BEAMER_SOURCE"
+  if [ "_$BEAMER_METHOD" = "_script-beamer-exec" ]; then
+    BEAMER_SOURCE_URL="https://raw.githubusercontent.com/${BEAMER_GITHUB_REPO}/${BEAMER_VERSION}/beamer-exec"
+  elif [ "_$BEAMER_METHOD" = "_script-beamer-bash-completion" ]; then
+    BEAMER_SOURCE_URL="https://raw.githubusercontent.com/${BEAMER_GITHUB_REPO}/${BEAMER_VERSION}/bash_completion"
+  elif [ -z "$BEAMER_SOURCE_URL" ]; then
+    if [ "_$BEAMER_METHOD" = "_script" ]; then
+      BEAMER_SOURCE_URL="https://raw.githubusercontent.com/${BEAMER_GITHUB_REPO}/${BEAMER_VERSION}/beamer.sh"
+    elif [ "_$BEAMER_METHOD" = "_git" ] || [ -z "$BEAMER_METHOD" ]; then
+      BEAMER_SOURCE_URL="https://github.com/${BEAMER_GITHUB_REPO}.git"
     else
-      beamer_echo >&2 "Unexpected value \"$NVM_METHOD\" for \$NVM_METHOD"
+      beamer_echo >&2 "Unexpected value \"$BEAMER_METHOD\" for \$BEAMER_METHOD"
       return 1
     fi
   fi
-  beamer_echo "$NVM_SOURCE_URL"
+  beamer_echo "$BEAMER_SOURCE_URL"
 }
 
 #
@@ -126,15 +126,15 @@ beamer_download() {
 install_beamer_from_git() {
   local INSTALL_DIR
   INSTALL_DIR="$(beamer_install_dir)"
-  local NVM_VERSION
-  NVM_VERSION="${NVM_INSTALL_VERSION:-$(beamer_latest_version)}"
-  if [ -n "${NVM_INSTALL_VERSION:-}" ]; then
+  local BEAMER_VERSION
+  BEAMER_VERSION="${BEAMER_INSTALL_VERSION:-$(beamer_latest_version)}"
+  if [ -n "${BEAMER_INSTALL_VERSION:-}" ]; then
     # Check if version is an existing ref
-    if command git ls-remote "$(beamer_source "git")" "$NVM_VERSION" | beamer_grep -q "$NVM_VERSION" ; then
+    if command git ls-remote "$(beamer_source "git")" "$BEAMER_VERSION" | beamer_grep -q "$BEAMER_VERSION" ; then
       :
     # Check if version is an existing changeset
     elif ! beamer_download -o /dev/null "$(beamer_source "script-beamer-exec")"; then
-      beamer_echo >&2 "Failed to find '$NVM_VERSION' version."
+      beamer_echo >&2 "Failed to find '$BEAMER_VERSION' version."
       exit 1
     fi
   fi
@@ -144,9 +144,9 @@ install_beamer_from_git() {
     # Updating repo
     beamer_echo "=> beamer is already installed in $INSTALL_DIR, trying to update using git"
     command printf '\r=> '
-    fetch_error="Failed to update beamer with $NVM_VERSION, run 'git fetch' in $INSTALL_DIR yourself."
+    fetch_error="Failed to update beamer with $BEAMER_VERSION, run 'git fetch' in $INSTALL_DIR yourself."
   else
-    fetch_error="Failed to fetch origin with $NVM_VERSION. Please report this!"
+    fetch_error="Failed to fetch origin with $BEAMER_VERSION. Please report this!"
     beamer_echo "=> Downloading beamer from git to '$INSTALL_DIR'"
     command printf '\r=> '
     mkdir -p "${INSTALL_DIR}"
@@ -170,15 +170,15 @@ install_beamer_from_git() {
     fi
   fi
   # Try to fetch tag
-  if command git --git-dir="$INSTALL_DIR"/.git --work-tree="$INSTALL_DIR" fetch origin tag "$NVM_VERSION" --depth=1 2>/dev/null; then
+  if command git --git-dir="$INSTALL_DIR"/.git --work-tree="$INSTALL_DIR" fetch origin tag "$BEAMER_VERSION" --depth=1 2>/dev/null; then
     :
   # Fetch given version
-  elif ! command git --git-dir="$INSTALL_DIR"/.git --work-tree="$INSTALL_DIR" fetch origin "$NVM_VERSION" --depth=1; then
+  elif ! command git --git-dir="$INSTALL_DIR"/.git --work-tree="$INSTALL_DIR" fetch origin "$BEAMER_VERSION" --depth=1; then
     beamer_echo >&2 "$fetch_error"
     exit 1
   fi
   command git -c advice.detachedHead=false --git-dir="$INSTALL_DIR"/.git --work-tree="$INSTALL_DIR" checkout -f --quiet FETCH_HEAD || {
-    beamer_echo >&2 "Failed to checkout the given version $NVM_VERSION. Please report this!"
+    beamer_echo >&2 "Failed to checkout the given version $BEAMER_VERSION. Please report this!"
     exit 2
   }
   if [ -n "$(command git --git-dir="$INSTALL_DIR"/.git --work-tree="$INSTALL_DIR" show-ref refs/heads/master)" ]; then
@@ -213,10 +213,10 @@ beamer_install_node() {
 
   beamer_echo "=> Installing Node.js version $NODE_VERSION_LOCAL"
   beamer install "$NODE_VERSION_LOCAL"
-  local CURRENT_NVM_NODE
+  local CURRENT_BEAMER_NODE
 
-  CURRENT_NVM_NODE="$(beamer_version current)"
-  if [ "$(beamer_version "$NODE_VERSION_LOCAL")" == "$CURRENT_NVM_NODE" ]; then
+  CURRENT_BEAMER_NODE="$(beamer_version current)"
+  if [ "$(beamer_version "$NODE_VERSION_LOCAL")" == "$CURRENT_BEAMER_NODE" ]; then
     beamer_echo "=> Node.js version $NODE_VERSION_LOCAL has been successfully installed"
   else
     beamer_echo >&2 "Failed to install Node.js $NODE_VERSION_LOCAL"
@@ -226,12 +226,12 @@ beamer_install_node() {
 install_beamer_as_script() {
   local INSTALL_DIR
   INSTALL_DIR="$(beamer_install_dir)"
-  local NVM_SOURCE_LOCAL
-  NVM_SOURCE_LOCAL="$(beamer_source script)"
-  local NVM_EXEC_SOURCE
-  NVM_EXEC_SOURCE="$(beamer_source script-beamer-exec)"
-  local NVM_BASH_COMPLETION_SOURCE
-  NVM_BASH_COMPLETION_SOURCE="$(beamer_source script-beamer-bash-completion)"
+  local BEAMER_SOURCE_LOCAL
+  BEAMER_SOURCE_LOCAL="$(beamer_source script)"
+  local BEAMER_EXEC_SOURCE
+  BEAMER_EXEC_SOURCE="$(beamer_source script-beamer-exec)"
+  local BEAMER_BASH_COMPLETION_SOURCE
+  BEAMER_BASH_COMPLETION_SOURCE="$(beamer_source script-beamer-bash-completion)"
 
   # Downloading to $INSTALL_DIR
   mkdir -p "$INSTALL_DIR"
@@ -240,16 +240,16 @@ install_beamer_as_script() {
   else
     beamer_echo "=> Downloading beamer as script to '$INSTALL_DIR'"
   fi
-  beamer_download -s "$NVM_SOURCE_LOCAL" -o "$INSTALL_DIR/beamer.sh" || {
-    beamer_echo >&2 "Failed to download '$NVM_SOURCE_LOCAL'"
+  beamer_download -s "$BEAMER_SOURCE_LOCAL" -o "$INSTALL_DIR/beamer.sh" || {
+    beamer_echo >&2 "Failed to download '$BEAMER_SOURCE_LOCAL'"
     return 1
   } &
-  beamer_download -s "$NVM_EXEC_SOURCE" -o "$INSTALL_DIR/beamer-exec" || {
-    beamer_echo >&2 "Failed to download '$NVM_EXEC_SOURCE'"
+  beamer_download -s "$BEAMER_EXEC_SOURCE" -o "$INSTALL_DIR/beamer-exec" || {
+    beamer_echo >&2 "Failed to download '$BEAMER_EXEC_SOURCE'"
     return 2
   } &
-  beamer_download -s "$NVM_BASH_COMPLETION_SOURCE" -o "$INSTALL_DIR/bash_completion" || {
-    beamer_echo >&2 "Failed to download '$NVM_BASH_COMPLETION_SOURCE'"
+  beamer_download -s "$BEAMER_BASH_COMPLETION_SOURCE" -o "$INSTALL_DIR/bash_completion" || {
+    beamer_echo >&2 "Failed to download '$BEAMER_BASH_COMPLETION_SOURCE'"
     return 2
   } &
   for job in $(jobs -p | command sort)
@@ -324,7 +324,7 @@ beamer_detect_profile() {
 beamer_check_global_modules() {
   local NPM_COMMAND
   NPM_COMMAND="$(command -v npm 2>/dev/null)" || return 0
-  [ -n "${NVM_DIR}" ] && [ -z "${NPM_COMMAND%%"$NVM_DIR"/*}" ] && return 0
+  [ -n "${BEAMER_DIR}" ] && [ -z "${NPM_COMMAND%%"$BEAMER_DIR"/*}" ] && return 0
 
   local NPM_VERSION
   NPM_VERSION="$(npm --version)"
@@ -367,16 +367,16 @@ beamer_check_global_modules() {
 }
 
 beamer_do_install() {
-  if [ -n "${NVM_DIR-}" ] && ! [ -d "${NVM_DIR}" ]; then
-    if [ -e "${NVM_DIR}" ]; then
-      beamer_echo >&2 "File \"${NVM_DIR}\" has the same name as installation directory."
+  if [ -n "${BEAMER_DIR-}" ] && ! [ -d "${BEAMER_DIR}" ]; then
+    if [ -e "${BEAMER_DIR}" ]; then
+      beamer_echo >&2 "File \"${BEAMER_DIR}\" has the same name as installation directory."
       exit 1
     fi
 
-    if [ "${NVM_DIR}" = "$(beamer_default_install_dir)" ]; then
-      mkdir "${NVM_DIR}"
+    if [ "${BEAMER_DIR}" = "$(beamer_default_install_dir)" ]; then
+      mkdir "${BEAMER_DIR}"
     else
-      beamer_echo >&2 "You have \$NVM_DIR set to \"${NVM_DIR}\", but that directory does not exist. Check your profile files and environment."
+      beamer_echo >&2 "You have \$BEAMER_DIR set to \"${BEAMER_DIR}\", but that directory does not exist. Check your profile files and environment."
       exit 1
     fi
   fi
@@ -417,21 +417,21 @@ beamer_do_install() {
 
   beamer_echo
 
-  local NVM_PROFILE
-  NVM_PROFILE="$(beamer_detect_profile)"
+  local BEAMER_PROFILE
+  BEAMER_PROFILE="$(beamer_detect_profile)"
   local PROFILE_INSTALL_DIR
   PROFILE_INSTALL_DIR="$(beamer_install_dir | command sed "s:^$HOME:\$HOME:")"
 
-  SOURCE_STR="\\nexport NVM_DIR=\"${PROFILE_INSTALL_DIR}\"\\n[ -s \"\$NVM_DIR/beamer.sh\" ] && \\. \"\$NVM_DIR/beamer.sh\"  # This loads beamer\\n"
+  SOURCE_STR="\\nexport BEAMER_DIR=\"${PROFILE_INSTALL_DIR}\"\\n[ -s \"\$BEAMER_DIR/beamer.sh\" ] && \\. \"\$BEAMER_DIR/beamer.sh\"  # This loads beamer\\n"
 
   # shellcheck disable=SC2016
-  COMPLETION_STR='[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads beamer bash_completion\n'
+  COMPLETION_STR='[ -s "$BEAMER_DIR/bash_completion" ] && \. "$BEAMER_DIR/bash_completion"  # This loads beamer bash_completion\n'
   BASH_OR_ZSH=false
 
-  if [ -z "${NVM_PROFILE-}" ] ; then
+  if [ -z "${BEAMER_PROFILE-}" ] ; then
     local TRIED_PROFILE
     if [ -n "${PROFILE}" ]; then
-      TRIED_PROFILE="${NVM_PROFILE} (as defined in \$PROFILE), "
+      TRIED_PROFILE="${BEAMER_PROFILE} (as defined in \$PROFILE), "
     fi
     beamer_echo "=> Profile not found. Tried ${TRIED_PROFILE-}~/.bashrc, ~/.bash_profile, ~/.zprofile, ~/.zshrc, and ~/.profile."
     beamer_echo "=> Create one of them and run this script again"
@@ -440,24 +440,24 @@ beamer_do_install() {
     command printf "${SOURCE_STR}"
     beamer_echo
   else
-    if beamer_profile_is_bash_or_zsh "${NVM_PROFILE-}"; then
+    if beamer_profile_is_bash_or_zsh "${BEAMER_PROFILE-}"; then
       BASH_OR_ZSH=true
     fi
-    if ! command grep -qc '/beamer.sh' "$NVM_PROFILE"; then
-      beamer_echo "=> Appending beamer source string to $NVM_PROFILE"
-      command printf "${SOURCE_STR}" >> "$NVM_PROFILE"
+    if ! command grep -qc '/beamer.sh' "$BEAMER_PROFILE"; then
+      beamer_echo "=> Appending beamer source string to $BEAMER_PROFILE"
+      command printf "${SOURCE_STR}" >> "$BEAMER_PROFILE"
     else
-      beamer_echo "=> beamer source string already in ${NVM_PROFILE}"
+      beamer_echo "=> beamer source string already in ${BEAMER_PROFILE}"
     fi
     # shellcheck disable=SC2016
-    if ${BASH_OR_ZSH} && ! command grep -qc '$NVM_DIR/bash_completion' "$NVM_PROFILE"; then
-      beamer_echo "=> Appending bash_completion source string to $NVM_PROFILE"
-      command printf "$COMPLETION_STR" >> "$NVM_PROFILE"
+    if ${BASH_OR_ZSH} && ! command grep -qc '$BEAMER_DIR/bash_completion' "$BEAMER_PROFILE"; then
+      beamer_echo "=> Appending bash_completion source string to $BEAMER_PROFILE"
+      command printf "$COMPLETION_STR" >> "$BEAMER_PROFILE"
     else
-      beamer_echo "=> bash_completion source string already in ${NVM_PROFILE}"
+      beamer_echo "=> bash_completion source string already in ${BEAMER_PROFILE}"
     fi
   fi
-  if ${BASH_OR_ZSH} && [ -z "${NVM_PROFILE-}" ] ; then
+  if ${BASH_OR_ZSH} && [ -z "${BEAMER_PROFILE-}" ] ; then
     beamer_echo "=> Please also append the following lines to the if you are using bash/zsh shell:"
     command printf "${COMPLETION_STR}"
   fi
@@ -490,6 +490,6 @@ beamer_reset() {
     beamer_do_install beamer_reset beamer_default_install_dir beamer_grep
 }
 
-[ "_$NVM_ENV" = "_testing" ] || beamer_do_install
+[ "_$BEAMER_ENV" = "_testing" ] || beamer_do_install
 
 } # this ensures the entire script is downloaded #
