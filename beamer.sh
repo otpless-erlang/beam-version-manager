@@ -171,12 +171,12 @@ beamer_is_version_installed() {
   if [ -z "${1-}" ]; then
     return 1
   fi
-  local BEAMER_NODE_BINARY
-  BEAMER_NODE_BINARY='beam'
+  local BEAMER_BEAM_BINARY
+  BEAMER_BEAM_BINARY='beam'
   if [ "_$(beamer_get_os)" = '_win' ]; then
-    BEAMER_NODE_BINARY='beam.exe'
+    BEAMER_BEAM_BINARY='beam.exe'
   fi
-  if [ -x "$(beamer_version_path "$1" 2>/dev/null)/bin/${BEAMER_NODE_BINARY}" ]; then
+  if [ -x "$(beamer_version_path "$1" 2>/dev/null)/bin/${BEAMER_BEAM_BINARY}" ]; then
     return 0
   fi
   return 1
@@ -194,15 +194,15 @@ beamer_print_npm_version() {
 
 beamer_install_latest_npm() {
   beamer_echo 'Attempting to upgrade to the latest working version of npm...'
-  local NODE_VERSION
-  NODE_VERSION="$(beamer_strip_iojs_prefix "$(beamer_ls_current)")"
-  if [ "${NODE_VERSION}" = 'system' ]; then
-    NODE_VERSION="$(beam --version)"
-  elif [ "${NODE_VERSION}" = 'none' ]; then
-    beamer_echo "Detected beam version ${NODE_VERSION}, npm version v${NPM_VERSION}"
-    NODE_VERSION=''
+  local BEAM_VERSION
+  BEAM_VERSION="$(beamer_strip_iojs_prefix "$(beamer_ls_current)")"
+  if [ "${BEAM_VERSION}" = 'system' ]; then
+    BEAM_VERSION="$(beam --version)"
+  elif [ "${BEAM_VERSION}" = 'none' ]; then
+    beamer_echo "Detected beam version ${BEAM_VERSION}, npm version v${NPM_VERSION}"
+    BEAM_VERSION=''
   fi
-  if [ -z "${NODE_VERSION}" ]; then
+  if [ -z "${BEAM_VERSION}" ]; then
     beamer_err 'Unable to obtain beam version.'
     return 1
   fi
@@ -216,18 +216,18 @@ beamer_install_latest_npm() {
   local BEAMER_NPM_CMD
   BEAMER_NPM_CMD='npm'
   if [ "${BEAMER_DEBUG-}" = 1 ]; then
-    beamer_echo "Detected beam version ${NODE_VERSION}, npm version v${NPM_VERSION}"
+    beamer_echo "Detected beam version ${BEAM_VERSION}, npm version v${NPM_VERSION}"
     BEAMER_NPM_CMD='beamer_echo npm'
   fi
 
   local BEAMER_IS_0_6
   BEAMER_IS_0_6=0
-  if beamer_version_greater_than_or_equal_to "${NODE_VERSION}" 0.6.0 && beamer_version_greater 0.7.0 "${NODE_VERSION}"; then
+  if beamer_version_greater_than_or_equal_to "${BEAM_VERSION}" 0.6.0 && beamer_version_greater 0.7.0 "${BEAM_VERSION}"; then
     BEAMER_IS_0_6=1
   fi
   local BEAMER_IS_0_9
   BEAMER_IS_0_9=0
-  if beamer_version_greater_than_or_equal_to "${NODE_VERSION}" 0.9.0 && beamer_version_greater 0.10.0 "${NODE_VERSION}"; then
+  if beamer_version_greater_than_or_equal_to "${BEAM_VERSION}" 0.9.0 && beamer_version_greater 0.10.0 "${BEAM_VERSION}"; then
     BEAMER_IS_0_9=1
   fi
 
@@ -247,22 +247,22 @@ beamer_install_latest_npm() {
 
   if [ $BEAMER_IS_0_9 -eq 1 ] || [ $BEAMER_IS_0_6 -eq 1 ]; then
     beamer_echo '* beam v0.6 and v0.9 are unable to upgrade further'
-  elif beamer_version_greater 1.1.0 "${NODE_VERSION}"; then
+  elif beamer_version_greater 1.1.0 "${BEAM_VERSION}"; then
     beamer_echo '* `npm` v4.5.x is the last version that works on `beam` versions < v1.1.0'
     $BEAMER_NPM_CMD install -g npm@4.5
-  elif beamer_version_greater 4.0.0 "${NODE_VERSION}"; then
+  elif beamer_version_greater 4.0.0 "${BEAM_VERSION}"; then
     beamer_echo '* `npm` v5 and higher do not work on `beam` versions below v4.0.0'
     $BEAMER_NPM_CMD install -g npm@4
   elif [ $BEAMER_IS_0_9 -eq 0 ] && [ $BEAMER_IS_0_6 -eq 0 ]; then
     local BEAMER_IS_4_4_OR_BELOW
     BEAMER_IS_4_4_OR_BELOW=0
-    if beamer_version_greater 4.5.0 "${NODE_VERSION}"; then
+    if beamer_version_greater 4.5.0 "${BEAM_VERSION}"; then
       BEAMER_IS_4_4_OR_BELOW=1
     fi
 
     local BEAMER_IS_5_OR_ABOVE
     BEAMER_IS_5_OR_ABOVE=0
-    if [ $BEAMER_IS_4_4_OR_BELOW -eq 0 ] && beamer_version_greater_than_or_equal_to "${NODE_VERSION}" 5.0.0; then
+    if [ $BEAMER_IS_4_4_OR_BELOW -eq 0 ] && beamer_version_greater_than_or_equal_to "${BEAM_VERSION}" 5.0.0; then
       BEAMER_IS_5_OR_ABOVE=1
     fi
 
@@ -270,9 +270,9 @@ beamer_install_latest_npm() {
     BEAMER_IS_6_OR_ABOVE=0
     local BEAMER_IS_6_2_OR_ABOVE
     BEAMER_IS_6_2_OR_ABOVE=0
-    if [ $BEAMER_IS_5_OR_ABOVE -eq 1 ] && beamer_version_greater_than_or_equal_to "${NODE_VERSION}" 6.0.0; then
+    if [ $BEAMER_IS_5_OR_ABOVE -eq 1 ] && beamer_version_greater_than_or_equal_to "${BEAM_VERSION}" 6.0.0; then
       BEAMER_IS_6_OR_ABOVE=1
-      if beamer_version_greater_than_or_equal_to "${NODE_VERSION}" 6.2.0; then
+      if beamer_version_greater_than_or_equal_to "${BEAM_VERSION}" 6.2.0; then
         BEAMER_IS_6_2_OR_ABOVE=1
       fi
     fi
@@ -281,85 +281,85 @@ beamer_install_latest_npm() {
     BEAMER_IS_9_OR_ABOVE=0
     local BEAMER_IS_9_3_OR_ABOVE
     BEAMER_IS_9_3_OR_ABOVE=0
-    if [ $BEAMER_IS_6_2_OR_ABOVE -eq 1 ] && beamer_version_greater_than_or_equal_to "${NODE_VERSION}" 9.0.0; then
+    if [ $BEAMER_IS_6_2_OR_ABOVE -eq 1 ] && beamer_version_greater_than_or_equal_to "${BEAM_VERSION}" 9.0.0; then
       BEAMER_IS_9_OR_ABOVE=1
-      if beamer_version_greater_than_or_equal_to "${NODE_VERSION}" 9.3.0; then
+      if beamer_version_greater_than_or_equal_to "${BEAM_VERSION}" 9.3.0; then
         BEAMER_IS_9_3_OR_ABOVE=1
       fi
     fi
 
     local BEAMER_IS_10_OR_ABOVE
     BEAMER_IS_10_OR_ABOVE=0
-    if [ $BEAMER_IS_9_3_OR_ABOVE -eq 1 ] && beamer_version_greater_than_or_equal_to "${NODE_VERSION}" 10.0.0; then
+    if [ $BEAMER_IS_9_3_OR_ABOVE -eq 1 ] && beamer_version_greater_than_or_equal_to "${BEAM_VERSION}" 10.0.0; then
       BEAMER_IS_10_OR_ABOVE=1
     fi
     local BEAMER_IS_12_LTS_OR_ABOVE
     BEAMER_IS_12_LTS_OR_ABOVE=0
-    if [ $BEAMER_IS_10_OR_ABOVE -eq 1 ] && beamer_version_greater_than_or_equal_to "${NODE_VERSION}" 12.13.0; then
+    if [ $BEAMER_IS_10_OR_ABOVE -eq 1 ] && beamer_version_greater_than_or_equal_to "${BEAM_VERSION}" 12.13.0; then
       BEAMER_IS_12_LTS_OR_ABOVE=1
     fi
     local BEAMER_IS_13_OR_ABOVE
     BEAMER_IS_13_OR_ABOVE=0
-    if [ $BEAMER_IS_12_LTS_OR_ABOVE -eq 1 ] && beamer_version_greater_than_or_equal_to "${NODE_VERSION}" 13.0.0; then
+    if [ $BEAMER_IS_12_LTS_OR_ABOVE -eq 1 ] && beamer_version_greater_than_or_equal_to "${BEAM_VERSION}" 13.0.0; then
       BEAMER_IS_13_OR_ABOVE=1
     fi
     local BEAMER_IS_14_LTS_OR_ABOVE
     BEAMER_IS_14_LTS_OR_ABOVE=0
-    if [ $BEAMER_IS_13_OR_ABOVE -eq 1 ] && beamer_version_greater_than_or_equal_to "${NODE_VERSION}" 14.15.0; then
+    if [ $BEAMER_IS_13_OR_ABOVE -eq 1 ] && beamer_version_greater_than_or_equal_to "${BEAM_VERSION}" 14.15.0; then
       BEAMER_IS_14_LTS_OR_ABOVE=1
     fi
     local BEAMER_IS_14_17_OR_ABOVE
     BEAMER_IS_14_17_OR_ABOVE=0
-    if [ $BEAMER_IS_14_LTS_OR_ABOVE -eq 1 ] && beamer_version_greater_than_or_equal_to "${NODE_VERSION}" 14.17.0; then
+    if [ $BEAMER_IS_14_LTS_OR_ABOVE -eq 1 ] && beamer_version_greater_than_or_equal_to "${BEAM_VERSION}" 14.17.0; then
       BEAMER_IS_14_17_OR_ABOVE=1
     fi
     local BEAMER_IS_15_OR_ABOVE
     BEAMER_IS_15_OR_ABOVE=0
-    if [ $BEAMER_IS_14_LTS_OR_ABOVE -eq 1 ] && beamer_version_greater_than_or_equal_to "${NODE_VERSION}" 15.0.0; then
+    if [ $BEAMER_IS_14_LTS_OR_ABOVE -eq 1 ] && beamer_version_greater_than_or_equal_to "${BEAM_VERSION}" 15.0.0; then
       BEAMER_IS_15_OR_ABOVE=1
     fi
     local BEAMER_IS_16_OR_ABOVE
     BEAMER_IS_16_OR_ABOVE=0
-    if [ $BEAMER_IS_15_OR_ABOVE -eq 1 ] && beamer_version_greater_than_or_equal_to "${NODE_VERSION}" 16.0.0; then
+    if [ $BEAMER_IS_15_OR_ABOVE -eq 1 ] && beamer_version_greater_than_or_equal_to "${BEAM_VERSION}" 16.0.0; then
       BEAMER_IS_16_OR_ABOVE=1
     fi
     local BEAMER_IS_16_LTS_OR_ABOVE
     BEAMER_IS_16_LTS_OR_ABOVE=0
-    if [ $BEAMER_IS_16_OR_ABOVE -eq 1 ] && beamer_version_greater_than_or_equal_to "${NODE_VERSION}" 16.13.0; then
+    if [ $BEAMER_IS_16_OR_ABOVE -eq 1 ] && beamer_version_greater_than_or_equal_to "${BEAM_VERSION}" 16.13.0; then
       BEAMER_IS_16_LTS_OR_ABOVE=1
     fi
     local BEAMER_IS_17_OR_ABOVE
     BEAMER_IS_17_OR_ABOVE=0
-    if [ $BEAMER_IS_16_LTS_OR_ABOVE -eq 1 ] && beamer_version_greater_than_or_equal_to "${NODE_VERSION}" 17.0.0; then
+    if [ $BEAMER_IS_16_LTS_OR_ABOVE -eq 1 ] && beamer_version_greater_than_or_equal_to "${BEAM_VERSION}" 17.0.0; then
       BEAMER_IS_17_OR_ABOVE=1
     fi
     local BEAMER_IS_18_OR_ABOVE
     BEAMER_IS_18_OR_ABOVE=0
-    if [ $BEAMER_IS_17_OR_ABOVE -eq 1 ] && beamer_version_greater_than_or_equal_to "${NODE_VERSION}" 18.0.0; then
+    if [ $BEAMER_IS_17_OR_ABOVE -eq 1 ] && beamer_version_greater_than_or_equal_to "${BEAM_VERSION}" 18.0.0; then
       BEAMER_IS_18_OR_ABOVE=1
     fi
     local BEAMER_IS_18_17_OR_ABOVE
     BEAMER_IS_18_17_OR_ABOVE=0
-    if [ $BEAMER_IS_18_OR_ABOVE -eq 1 ] && beamer_version_greater_than_or_equal_to "${NODE_VERSION}" 18.17.0; then
+    if [ $BEAMER_IS_18_OR_ABOVE -eq 1 ] && beamer_version_greater_than_or_equal_to "${BEAM_VERSION}" 18.17.0; then
       BEAMER_IS_18_17_OR_ABOVE=1
     fi
     local BEAMER_IS_19_OR_ABOVE
     BEAMER_IS_19_OR_ABOVE=0
-    if [ $BEAMER_IS_18_17_OR_ABOVE -eq 1 ] && beamer_version_greater_than_or_equal_to "${NODE_VERSION}" 19.0.0; then
+    if [ $BEAMER_IS_18_17_OR_ABOVE -eq 1 ] && beamer_version_greater_than_or_equal_to "${BEAM_VERSION}" 19.0.0; then
       BEAMER_IS_19_OR_ABOVE=1
     fi
     local BEAMER_IS_20_5_OR_ABOVE
     BEAMER_IS_20_5_OR_ABOVE=0
-    if [ $BEAMER_IS_19_OR_ABOVE -eq 1 ] && beamer_version_greater_than_or_equal_to "${NODE_VERSION}" 20.5.0; then
+    if [ $BEAMER_IS_19_OR_ABOVE -eq 1 ] && beamer_version_greater_than_or_equal_to "${BEAM_VERSION}" 20.5.0; then
       BEAMER_IS_20_5_OR_ABOVE=1
     fi
 
     if [ $BEAMER_IS_4_4_OR_BELOW -eq 1 ] || {
-      [ $BEAMER_IS_5_OR_ABOVE -eq 1 ] && beamer_version_greater 5.10.0 "${NODE_VERSION}"; \
+      [ $BEAMER_IS_5_OR_ABOVE -eq 1 ] && beamer_version_greater 5.10.0 "${BEAM_VERSION}"; \
     }; then
       beamer_echo '* `npm` `v5.3.x` is the last version that works on `beam` 4.x versions below v4.4, or 5.x versions below v5.10, due to `Buffer.alloc`'
       $BEAMER_NPM_CMD install -g npm@5.3
-    elif [ $BEAMER_IS_4_4_OR_BELOW -eq 0 ] && beamer_version_greater 4.7.0 "${NODE_VERSION}"; then
+    elif [ $BEAMER_IS_4_4_OR_BELOW -eq 0 ] && beamer_version_greater 4.7.0 "${BEAM_VERSION}"; then
       beamer_echo '* `npm` `v5.4.1` is the last version that works on `beam` `v4.5` and `v4.6`'
       $BEAMER_NPM_CMD install -g npm@5.4.1
     elif [ $BEAMER_IS_6_OR_ABOVE -eq 0 ]; then
@@ -724,10 +724,10 @@ beamer_version() {
     return $?
   fi
 
-  local BEAMER_NODE_PREFIX
-  BEAMER_NODE_PREFIX="$(beamer_beam_prefix)"
+  local BEAMER_BEAM_PREFIX
+  BEAMER_BEAM_PREFIX="$(beamer_beam_prefix)"
   case "_${PATTERN}" in
-    "_${BEAMER_NODE_PREFIX}" | "_${BEAMER_NODE_PREFIX}-")
+    "_${BEAMER_BEAM_PREFIX}" | "_${BEAMER_BEAM_PREFIX}-")
       PATTERN="stable"
     ;;
   esac
@@ -771,15 +771,15 @@ beamer_remote_version() {
 beamer_remote_versions() {
   local BEAMER_IOJS_PREFIX
   BEAMER_IOJS_PREFIX="$(beamer_iojs_prefix)"
-  local BEAMER_NODE_PREFIX
-  BEAMER_NODE_PREFIX="$(beamer_beam_prefix)"
+  local BEAMER_BEAM_PREFIX
+  BEAMER_BEAM_PREFIX="$(beamer_beam_prefix)"
 
   local PATTERN
   PATTERN="${1-}"
 
   local BEAMER_FLAVOR
   if [ -n "${BEAMER_LTS-}" ]; then
-    BEAMER_FLAVOR="${BEAMER_NODE_PREFIX}"
+    BEAMER_FLAVOR="${BEAMER_BEAM_PREFIX}"
   fi
 
   case "${PATTERN}" in
@@ -787,8 +787,8 @@ beamer_remote_versions() {
       BEAMER_FLAVOR="${BEAMER_IOJS_PREFIX}"
       unset PATTERN
     ;;
-    "${BEAMER_NODE_PREFIX}")
-      BEAMER_FLAVOR="${BEAMER_NODE_PREFIX}"
+    "${BEAMER_BEAM_PREFIX}")
+      BEAMER_FLAVOR="${BEAMER_BEAM_PREFIX}"
       unset PATTERN
     ;;
   esac
@@ -804,7 +804,7 @@ beamer_remote_versions() {
   BEAMER_LS_REMOTE_PRE_MERGED_OUTPUT=''
   local BEAMER_LS_REMOTE_POST_MERGED_OUTPUT
   BEAMER_LS_REMOTE_POST_MERGED_OUTPUT=''
-  if [ -z "${BEAMER_FLAVOR-}" ] || [ "${BEAMER_FLAVOR-}" = "${BEAMER_NODE_PREFIX}" ]; then
+  if [ -z "${BEAMER_FLAVOR-}" ] || [ "${BEAMER_FLAVOR-}" = "${BEAMER_BEAM_PREFIX}" ]; then
     local BEAMER_LS_REMOTE_OUTPUT
     # extra space is needed here to avoid weird behavior when `beamer_ls_remote` ends in a `*`
     BEAMER_LS_REMOTE_OUTPUT="$(BEAMER_LTS="${BEAMER_LTS-}" beamer_ls_remote "${PATTERN-}") " &&:
@@ -1266,12 +1266,12 @@ beamer_alias() {
 }
 
 beamer_ls_current() {
-  local BEAMER_LS_CURRENT_NODE_PATH
-  if ! BEAMER_LS_CURRENT_NODE_PATH="$(command which beam 2>/dev/null)"; then
+  local BEAMER_LS_CURRENT_BEAM_PATH
+  if ! BEAMER_LS_CURRENT_BEAM_PATH="$(command which beam 2>/dev/null)"; then
     beamer_echo 'none'
-  elif beamer_tree_contains_path "$(beamer_version_dir iojs)" "${BEAMER_LS_CURRENT_NODE_PATH}"; then
+  elif beamer_tree_contains_path "$(beamer_version_dir iojs)" "${BEAMER_LS_CURRENT_BEAM_PATH}"; then
     beamer_add_iojs_prefix "$(iojs --version 2>/dev/null)"
-  elif beamer_tree_contains_path "${BEAMER_DIR}" "${BEAMER_LS_CURRENT_NODE_PATH}"; then
+  elif beamer_tree_contains_path "${BEAMER_DIR}" "${BEAMER_LS_CURRENT_BEAM_PATH}"; then
     local VERSION
     VERSION="$(beam --version 2>/dev/null)"
     if [ "${VERSION}" = "v0.6.21-pre" ]; then
@@ -1319,12 +1319,12 @@ beamer_resolve_alias() {
   if [ -n "${ALIAS}" ] && [ "_${ALIAS}" != "_${PATTERN}" ]; then
     local BEAMER_IOJS_PREFIX
     BEAMER_IOJS_PREFIX="$(beamer_iojs_prefix)"
-    local BEAMER_NODE_PREFIX
-    BEAMER_NODE_PREFIX="$(beamer_beam_prefix)"
+    local BEAMER_BEAM_PREFIX
+    BEAMER_BEAM_PREFIX="$(beamer_beam_prefix)"
     case "${ALIAS}" in
       '∞' | \
       "${BEAMER_IOJS_PREFIX}" | "${BEAMER_IOJS_PREFIX}-" | \
-      "${BEAMER_NODE_PREFIX}")
+      "${BEAMER_BEAM_PREFIX}")
         beamer_echo "${ALIAS}"
       ;;
       *)
@@ -1402,8 +1402,8 @@ beamer_ls() {
 
   local BEAMER_IOJS_PREFIX
   BEAMER_IOJS_PREFIX="$(beamer_iojs_prefix)"
-  local BEAMER_NODE_PREFIX
-  BEAMER_NODE_PREFIX="$(beamer_beam_prefix)"
+  local BEAMER_BEAM_PREFIX
+  BEAMER_BEAM_PREFIX="$(beamer_beam_prefix)"
   local BEAMER_VERSION_DIR_IOJS
   BEAMER_VERSION_DIR_IOJS="$(beamer_version_dir "${BEAMER_IOJS_PREFIX}")"
   local BEAMER_VERSION_DIR_NEW
@@ -1412,7 +1412,7 @@ beamer_ls() {
   BEAMER_VERSION_DIR_OLD="$(beamer_version_dir old)"
 
   case "${PATTERN}" in
-    "${BEAMER_IOJS_PREFIX}" | "${BEAMER_NODE_PREFIX}")
+    "${BEAMER_IOJS_PREFIX}" | "${BEAMER_BEAM_PREFIX}")
       PATTERN="${PATTERN}-"
     ;;
     *)
@@ -1439,7 +1439,7 @@ beamer_ls() {
     fi
   else
     case "${PATTERN}" in
-      "${BEAMER_IOJS_PREFIX}-" | "${BEAMER_NODE_PREFIX}-" | "system") ;;
+      "${BEAMER_IOJS_PREFIX}-" | "${BEAMER_BEAM_PREFIX}-" | "system") ;;
       *)
         local NUM_VERSION_GROUPS
         NUM_VERSION_GROUPS="$(beamer_num_version_groups "${PATTERN}")"
@@ -1466,7 +1466,7 @@ beamer_ls() {
       if beamer_has_system_iojs; then
         BEAMER_ADD_SYSTEM=true
       fi
-    elif [ "${PATTERN}" = "${BEAMER_NODE_PREFIX}-" ]; then
+    elif [ "${PATTERN}" = "${BEAMER_BEAM_PREFIX}-" ]; then
       BEAMER_DIRS_TO_SEARCH1="${BEAMER_VERSION_DIR_OLD}"
       BEAMER_DIRS_TO_SEARCH2="${BEAMER_VERSION_DIR_NEW}"
       PATTERN=''
@@ -1507,13 +1507,13 @@ beamer_ls() {
             \\#^[^v]# d;
             \\#^versions\$# d;
             s#^versions/##;
-            s#^v#${BEAMER_NODE_PREFIX}/v#;
+            s#^v#${BEAMER_BEAM_PREFIX}/v#;
             \\#${SEARCH_PATTERN}# !d;
           " \
           -e 's#^\([^/]\{1,\}\)/\(.*\)$#\2.\1#;' \
         | command sort -t. -u -k 1.2,1n -k 2,2n -k 3,3n \
         | command sed -e 's#\(.*\)\.\([^\.]\{1,\}\)$#\2-\1#;' \
-                      -e "s#^${BEAMER_NODE_PREFIX}-##;" \
+                      -e "s#^${BEAMER_BEAM_PREFIX}-##;" \
       )"
     fi
   fi
@@ -1913,15 +1913,15 @@ BEGIN {
 beamer_validate_implicit_alias() {
   local BEAMER_IOJS_PREFIX
   BEAMER_IOJS_PREFIX="$(beamer_iojs_prefix)"
-  local BEAMER_NODE_PREFIX
-  BEAMER_NODE_PREFIX="$(beamer_beam_prefix)"
+  local BEAMER_BEAM_PREFIX
+  BEAMER_BEAM_PREFIX="$(beamer_beam_prefix)"
 
   case "$1" in
-    "stable" | "unstable" | "${BEAMER_IOJS_PREFIX}" | "${BEAMER_NODE_PREFIX}")
+    "stable" | "unstable" | "${BEAMER_IOJS_PREFIX}" | "${BEAMER_BEAM_PREFIX}")
       return
     ;;
     *)
-      beamer_err "Only implicit aliases 'stable', 'unstable', '${BEAMER_IOJS_PREFIX}', and '${BEAMER_NODE_PREFIX}' are supported."
+      beamer_err "Only implicit aliases 'stable', 'unstable', '${BEAMER_IOJS_PREFIX}', and '${BEAMER_BEAM_PREFIX}' are supported."
       return 1
     ;;
   esac
@@ -1941,8 +1941,8 @@ beamer_print_implicit_alias() {
 
   local BEAMER_IOJS_PREFIX
   BEAMER_IOJS_PREFIX="$(beamer_iojs_prefix)"
-  local BEAMER_NODE_PREFIX
-  BEAMER_NODE_PREFIX="$(beamer_beam_prefix)"
+  local BEAMER_BEAM_PREFIX
+  BEAMER_BEAM_PREFIX="$(beamer_beam_prefix)"
   local BEAMER_COMMAND
   local BEAMER_ADD_PREFIX_COMMAND
   local LAST_TWO
@@ -1971,7 +1971,7 @@ beamer_print_implicit_alias() {
       fi
       return $EXIT_CODE
     ;;
-    "${BEAMER_NODE_PREFIX}")
+    "${BEAMER_BEAM_PREFIX}")
       beamer_echo 'stable'
       return
     ;;
@@ -2139,7 +2139,7 @@ beamer_get_mirror() {
   local BEAMER_MIRROR
   BEAMER_MIRROR=''
   case "${1}-${2}" in
-    beam-std) BEAMER_MIRROR="${BEAMER_NODEJS_ORG_MIRROR:-https://beamjs.org/dist}" ;;
+    beam-std) BEAMER_MIRROR="${BEAMER_BEAMJS_ORG_MIRROR:-https://beamjs.org/dist}" ;;
     iojs-std) BEAMER_MIRROR="${BEAMER_IOJS_ORG_MIRROR:-https://iojs.org/dist}" ;;
     *)
       beamer_err 'unknown type of beam.js or io.js release'
@@ -2149,14 +2149,14 @@ beamer_get_mirror() {
 
   case "${BEAMER_MIRROR}" in
     *\`* | *\\* | *\'* | *\(* | *' '* )
-      beamer_err '$BEAMER_NODEJS_ORG_MIRROR and $BEAMER_IOJS_ORG_MIRROR may only contain a URL'
+      beamer_err '$BEAMER_BEAMJS_ORG_MIRROR and $BEAMER_IOJS_ORG_MIRROR may only contain a URL'
       return 2
     ;;
   esac
 
 
   if ! beamer_echo "${BEAMER_MIRROR}" | command awk '{ $0 ~ "^https?://[a-zA-Z0-9./_-]+$" }'; then
-      beamer_err '$BEAMER_NODEJS_ORG_MIRROR and $BEAMER_IOJS_ORG_MIRROR may only contain a URL'
+      beamer_err '$BEAMER_BEAMJS_ORG_MIRROR and $BEAMER_IOJS_ORG_MIRROR may only contain a URL'
       return 2
   fi
 
@@ -2250,11 +2250,11 @@ beamer_install_binary() {
   local TMPDIR
 
   local PROGRESS_BAR
-  local NODE_OR_IOJS
+  local BEAM_OR_IOJS
   if [ "${FLAVOR}" = 'beam' ]; then
-    NODE_OR_IOJS="${FLAVOR}"
+    BEAM_OR_IOJS="${FLAVOR}"
   elif [ "${FLAVOR}" = 'iojs' ]; then
-    NODE_OR_IOJS="io.js"
+    BEAM_OR_IOJS="io.js"
   fi
   if [ "${BEAMER_NO_PROGRESS-}" = "1" ]; then
     # --silent, --show-error, use short option as @samrocketman mentions the compatibility issue.
@@ -2262,7 +2262,7 @@ beamer_install_binary() {
   else
     PROGRESS_BAR="--progress-bar"
   fi
-  beamer_echo "Downloading and installing ${NODE_OR_IOJS-} ${VERSION}..."
+  beamer_echo "Downloading and installing ${BEAM_OR_IOJS-} ${VERSION}..."
   TARBALL="$(PROGRESS_BAR="${PROGRESS_BAR}" beamer_download_artifact "${FLAVOR}" binary "${TYPE-}" "${VERSION}" | command tail -1)"
   if [ -f "${TARBALL}" ]; then
     TMPDIR="$(dirname "${TARBALL}")/files"
@@ -2861,25 +2861,25 @@ beamer_iojs_version_has_solaris_binary() {
   beamer_version_greater_than_or_equal_to "${STRIPPED_IOJS_VERSION}" v3.3.1
 }
 
-# Succeeds if $NODE_VERSION represents a beam version that has a
+# Succeeds if $BEAM_VERSION represents a beam version that has a
 # Solaris binary, fails otherwise.
 # Currently, beam versions starting from v0.8.6 have a Solaris binary
 # available.
 beamer_beam_version_has_solaris_binary() {
-  local NODE_VERSION
-  NODE_VERSION="$1"
-  # Error out if $NODE_VERSION is actually an io.js version
+  local BEAM_VERSION
+  BEAM_VERSION="$1"
+  # Error out if $BEAM_VERSION is actually an io.js version
   local STRIPPED_IOJS_VERSION
-  STRIPPED_IOJS_VERSION="$(beamer_strip_iojs_prefix "${NODE_VERSION}")"
-  if [ "_${STRIPPED_IOJS_VERSION}" != "_${NODE_VERSION}" ]; then
+  STRIPPED_IOJS_VERSION="$(beamer_strip_iojs_prefix "${BEAM_VERSION}")"
+  if [ "_${STRIPPED_IOJS_VERSION}" != "_${BEAM_VERSION}" ]; then
     return 1
   fi
 
   # beam (unmerged) started shipping Solaris binaries with v0.8.6 and
   # beam versions v1.0.0 or greater are not considered valid "unmerged" beam
   # versions.
-  beamer_version_greater_than_or_equal_to "${NODE_VERSION}" v0.8.6 \
-  && ! beamer_version_greater_than_or_equal_to "${NODE_VERSION}" v1.0.0
+  beamer_version_greater_than_or_equal_to "${BEAM_VERSION}" v0.8.6 \
+  && ! beamer_version_greater_than_or_equal_to "${BEAM_VERSION}" v1.0.0
 }
 
 # Succeeds if $VERSION represents a version (beam, io.js or merged) that has a
@@ -3013,15 +3013,15 @@ beamer() {
 
         local BEAMER_IOJS_PREFIX
         BEAMER_IOJS_PREFIX="$(beamer_iojs_prefix)"
-        local BEAMER_NODE_PREFIX
-        BEAMER_NODE_PREFIX="$(beamer_beam_prefix)"
+        local BEAMER_BEAM_PREFIX
+        BEAMER_BEAM_PREFIX="$(beamer_beam_prefix)"
         BEAMER_VERSION="$(beamer --version)"
         beamer_echo
         beamer_echo "Node Version Manager (v${BEAMER_VERSION})"
         beamer_echo
         beamer_echo 'Note: <version> refers to any version-like string beamer understands. This includes:'
         beamer_echo '  - full or partial version numbers, starting with an optional "v" (0.10, v0.1.2, v1)'
-        beamer_echo "  - default (built-in) aliases: ${BEAMER_NODE_PREFIX}, stable, unstable, ${BEAMER_IOJS_PREFIX}, system"
+        beamer_echo "  - default (built-in) aliases: ${BEAMER_BEAM_PREFIX}, stable, unstable, ${BEAMER_IOJS_PREFIX}, system"
         beamer_echo '  - custom aliases you define with `beamer alias foo`'
         beamer_echo
         beamer_echo ' Any options that produce colorized output should respect the `--no-colors` option.'
@@ -3167,7 +3167,7 @@ beamer() {
       beamer_err "\${PATH}: $(beamer_sanitize_path "${PATH}")"
       beamer_err "\$PREFIX: '$(beamer_sanitize_path "${PREFIX}")'"
       beamer_err "\${NPM_CONFIG_PREFIX}: '$(beamer_sanitize_path "${NPM_CONFIG_PREFIX}")'"
-      beamer_err "\$BEAMER_NODEJS_ORG_MIRROR: '${BEAMER_NODEJS_ORG_MIRROR}'"
+      beamer_err "\$BEAMER_BEAMJS_ORG_MIRROR: '${BEAMER_BEAMJS_ORG_MIRROR}'"
       beamer_err "\$BEAMER_IOJS_ORG_MIRROR: '${BEAMER_IOJS_ORG_MIRROR}'"
       beamer_err "shell version: '$(${SHELL} --version | command head -n 1)'"
       beamer_err "uname -a: '$(command uname -a | command awk '{$2=""; print}' | command xargs)'"
@@ -3739,12 +3739,12 @@ beamer() {
         fi
       fi
 
-      if [ -n "${NODE_PATH-}" ]; then
-        NEWPATH="$(beamer_strip_path "${NODE_PATH}" "/lib/beam_modules")"
-        if [ "_${NODE_PATH}" != "_${NEWPATH}" ]; then
-          export NODE_PATH="${NEWPATH}"
+      if [ -n "${BEAM_PATH-}" ]; then
+        NEWPATH="$(beamer_strip_path "${BEAM_PATH}" "/lib/beam_modules")"
+        if [ "_${BEAM_PATH}" != "_${NEWPATH}" ]; then
+          export BEAM_PATH="${NEWPATH}"
           if [ "${BEAMER_SILENT:-0}" -ne 1 ]; then
-            beamer_echo "${BEAMER_DIR}/*/lib/beam_modules removed from \${NODE_PATH}"
+            beamer_echo "${BEAMER_DIR}/*/lib/beam_modules removed from \${BEAM_PATH}"
           fi
         fi
       fi
@@ -4038,7 +4038,7 @@ beamer() {
           beamer_echo "Running beam ${VERSION}$(beamer use --silent "${VERSION}" && beamer_print_npm_version)"
         fi
       fi
-      NODE_VERSION="${VERSION}" "${BEAMER_DIR}/beamer-exec" "$@"
+      BEAM_VERSION="${VERSION}" "${BEAMER_DIR}/beamer-exec" "$@"
     ;;
     "ls" | "list")
       local PATTERN
@@ -4262,9 +4262,9 @@ beamer() {
       fi
 
       local BEAMER_IOJS_PREFIX
-      local BEAMER_NODE_PREFIX
+      local BEAMER_BEAM_PREFIX
       BEAMER_IOJS_PREFIX="$(beamer_iojs_prefix)"
-      BEAMER_NODE_PREFIX="$(beamer_beam_prefix)"
+      BEAMER_BEAM_PREFIX="$(beamer_beam_prefix)"
       local BEAMER_ALIAS_EXISTS
       BEAMER_ALIAS_EXISTS=0
       if [ -f "${BEAMER_ALIAS_DIR}/${1-}" ]; then
@@ -4273,7 +4273,7 @@ beamer() {
 
       if [ $BEAMER_ALIAS_EXISTS -eq 0 ]; then
         case "$1" in
-          "stable" | "unstable" | "${BEAMER_IOJS_PREFIX}" | "${BEAMER_NODE_PREFIX}" | "system")
+          "stable" | "unstable" | "${BEAMER_IOJS_PREFIX}" | "${BEAMER_BEAM_PREFIX}" | "system")
             beamer_err "${1-} is a default (built-in) alias and cannot be deleted."
             return 1
           ;;
@@ -4444,7 +4444,7 @@ beamer() {
         beamer_process_beamerrc beamer_beamerrc_invalid_msg \
         beamer_write_beamerrc \
         >/dev/null 2>&1
-      unset BEAMER_RC_VERSION BEAMER_NODEJS_ORG_MIRROR BEAMER_IOJS_ORG_MIRROR BEAMER_DIR \
+      unset BEAMER_RC_VERSION BEAMER_BEAMJS_ORG_MIRROR BEAMER_IOJS_ORG_MIRROR BEAMER_DIR \
         BEAMER_CD_FLAGS BEAMER_BIN BEAMER_INC BEAMER_MAKE_JOBS \
         BEAMER_COLORS INSTALLED_COLOR SYSTEM_COLOR \
         CURRENT_COLOR NOT_INSTALLED_COLOR DEFAULT_COLOR LTS_COLOR \
