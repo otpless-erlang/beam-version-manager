@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# bash completion for Node Version Manager (BEAMER)
+# bash completion for Beamer (the BEAM version manager)
 
 if ! command -v beamer &> /dev/null; then
   return
@@ -60,7 +60,6 @@ __beamer_aliases() {
   if [ -d "${BEAMER_DIR}/alias" ]; then
     aliases="$(command cd "${BEAMER_DIR}/alias" && command find "${PWD}" -type f | command sed "s:${PWD}/::")"
   fi
-  echo "${aliases} beam stable unstable iojs"
 }
 
 __beamer_alias() {
