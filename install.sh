@@ -100,7 +100,7 @@ EOF
 #
 # OTPless Erlang version to install
 #
-beamer_node_version() {
+beamer_beam_version() {
   beamer_echo "$NODE_VERSION"
 }
 
@@ -203,9 +203,9 @@ install_beamer_from_git() {
 #
 # Automatically install OTPless Erlang
 #
-beamer_install_node() {
+beamer_install_beam() {
   local NODE_VERSION_LOCAL
-  NODE_VERSION_LOCAL="$(beamer_node_version)"
+  NODE_VERSION_LOCAL="$(beamer_beam_version)"
 
   if [ -z "$NODE_VERSION_LOCAL" ]; then
     return 0
@@ -468,7 +468,7 @@ beamer_do_install() {
 
   beamer_check_global_packages
 
-  beamer_install_node
+  beamer_install_beam
 
   beamer_reset
 
@@ -485,7 +485,7 @@ beamer_do_install() {
 #
 beamer_reset() {
   unset -f beamer_has beamer_install_dir beamer_latest_version beamer_profile_is_bash_or_zsh \
-    beamer_source beamer_node_version beamer_download install_beamer_from_git beamer_install_node \
+    beamer_source beamer_beam_version beamer_download install_beamer_from_git beamer_install_beam \
     install_beamer_as_script beamer_try_profile beamer_detect_profile beamer_check_global_packages \
     beamer_do_install beamer_reset beamer_default_install_dir beamer_grep
 }
