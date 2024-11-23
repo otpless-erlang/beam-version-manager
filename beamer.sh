@@ -184,10 +184,10 @@ beamer_is_version_installed() {
 
 beamer_print_beamy_version() {
   if beamer_has "beamy"; then
-    local NPM_VERSION
-    NPM_VERSION="$(beamy --version 2>/dev/null)"
-    if [ -n "${NPM_VERSION}" ]; then
-      command printf " (beamy v${NPM_VERSION})"
+    local BEAMY_VERSION
+    BEAMY_VERSION="$(beamy --version 2>/dev/null)"
+    if [ -n "${BEAMY_VERSION}" ]; then
+      command printf " (beamy v${BEAMY_VERSION})"
     fi
   fi
 }
@@ -199,25 +199,25 @@ beamer_install_latest_beamy() {
   if [ "${BEAM_VERSION}" = 'system' ]; then
     BEAM_VERSION="$(beam --version)"
   elif [ "${BEAM_VERSION}" = 'none' ]; then
-    beamer_echo "Detected beam version ${BEAM_VERSION}, beamy version v${NPM_VERSION}"
+    beamer_echo "Detected beam version ${BEAM_VERSION}, beamy version v${BEAMY_VERSION}"
     BEAM_VERSION=''
   fi
   if [ -z "${BEAM_VERSION}" ]; then
     beamer_err 'Unable to obtain beam version.'
     return 1
   fi
-  local NPM_VERSION
-  NPM_VERSION="$(beamy --version 2>/dev/null)"
-  if [ -z "${NPM_VERSION}" ]; then
+  local BEAMY_VERSION
+  BEAMY_VERSION="$(beamy --version 2>/dev/null)"
+  if [ -z "${BEAMY_VERSION}" ]; then
     beamer_err 'Unable to obtain beamy version.'
     return 2
   fi
 
-  local BEAMER_NPM_CMD
-  BEAMER_NPM_CMD='beamy'
+  local BEAMER_BEAMY_CMD
+  BEAMER_BEAMY_CMD='beamy'
   if [ "${BEAMER_DEBUG-}" = 1 ]; then
-    beamer_echo "Detected beam version ${BEAM_VERSION}, beamy version v${NPM_VERSION}"
-    BEAMER_NPM_CMD='beamer_echo beamy'
+    beamer_echo "Detected beam version ${BEAM_VERSION}, beamy version v${BEAMY_VERSION}"
+    BEAMER_BEAMY_CMD='beamer_echo beamy'
   fi
 
   local BEAMER_IS_0_6
@@ -233,15 +233,15 @@ beamer_install_latest_beamy() {
 
   if [ $BEAMER_IS_0_6 -eq 1 ]; then
     beamer_echo '* `beam` v0.6.x can only upgrade to `beamy` v1.3.x'
-    $BEAMER_NPM_CMD install -g beamy@1.3
+    $BEAMER_BEAMY_CMD install -g beamy@1.3
   elif [ $BEAMER_IS_0_9 -eq 0 ]; then
     # beam 0.9 breaks here, for some reason
-    if beamer_version_greater_than_or_equal_to "${NPM_VERSION}" 1.0.0 && beamer_version_greater 2.0.0 "${NPM_VERSION}"; then
+    if beamer_version_greater_than_or_equal_to "${BEAMY_VERSION}" 1.0.0 && beamer_version_greater 2.0.0 "${BEAMY_VERSION}"; then
       beamer_echo '* `beamy` v1.x needs to first jump to `beamy` v1.4.28 to be able to upgrade further'
-      $BEAMER_NPM_CMD install -g beamy@1.4.28
-    elif beamer_version_greater_than_or_equal_to "${NPM_VERSION}" 2.0.0 && beamer_version_greater 3.0.0 "${NPM_VERSION}"; then
+      $BEAMER_BEAMY_CMD install -g beamy@1.4.28
+    elif beamer_version_greater_than_or_equal_to "${BEAMY_VERSION}" 2.0.0 && beamer_version_greater 3.0.0 "${BEAMY_VERSION}"; then
       beamer_echo '* `beamy` v2.x needs to first jump to the latest v2 to be able to upgrade further'
-      $BEAMER_NPM_CMD install -g beamy@2
+      $BEAMER_BEAMY_CMD install -g beamy@2
     fi
   fi
 
@@ -249,10 +249,10 @@ beamer_install_latest_beamy() {
     beamer_echo '* beam v0.6 and v0.9 are unable to upgrade further'
   elif beamer_version_greater 1.1.0 "${BEAM_VERSION}"; then
     beamer_echo '* `beamy` v4.5.x is the last version that works on `beam` versions < v1.1.0'
-    $BEAMER_NPM_CMD install -g beamy@4.5
+    $BEAMER_BEAMY_CMD install -g beamy@4.5
   elif beamer_version_greater 4.0.0 "${BEAM_VERSION}"; then
     beamer_echo '* `beamy` v5 and higher do not work on `beam` versions below v4.0.0'
-    $BEAMER_NPM_CMD install -g beamy@4
+    $BEAMER_BEAMY_CMD install -g beamy@4
   elif [ $BEAMER_IS_0_9 -eq 0 ] && [ $BEAMER_IS_0_6 -eq 0 ]; then
     local BEAMER_IS_4_4_OR_BELOW
     BEAMER_IS_4_4_OR_BELOW=0
@@ -358,33 +358,33 @@ beamer_install_latest_beamy() {
       [ $BEAMER_IS_5_OR_ABOVE -eq 1 ] && beamer_version_greater 5.10.0 "${BEAM_VERSION}"; \
     }; then
       beamer_echo '* `beamy` `v5.3.x` is the last version that works on `beam` 4.x versions below v4.4, or 5.x versions below v5.10, due to `Buffer.alloc`'
-      $BEAMER_NPM_CMD install -g beamy@5.3
+      $BEAMER_BEAMY_CMD install -g beamy@5.3
     elif [ $BEAMER_IS_4_4_OR_BELOW -eq 0 ] && beamer_version_greater 4.7.0 "${BEAM_VERSION}"; then
       beamer_echo '* `beamy` `v5.4.1` is the last version that works on `beam` `v4.5` and `v4.6`'
-      $BEAMER_NPM_CMD install -g beamy@5.4.1
+      $BEAMER_BEAMY_CMD install -g beamy@5.4.1
     elif [ $BEAMER_IS_6_OR_ABOVE -eq 0 ]; then
       beamer_echo '* `beamy` `v5.x` is the last version that works on `beam` below `v6.0.0`'
-      $BEAMER_NPM_CMD install -g beamy@5
+      $BEAMER_BEAMY_CMD install -g beamy@5
     elif \
       { [ $BEAMER_IS_6_OR_ABOVE -eq 1 ] && [ $BEAMER_IS_6_2_OR_ABOVE -eq 0 ]; } \
       || { [ $BEAMER_IS_9_OR_ABOVE -eq 1 ] && [ $BEAMER_IS_9_3_OR_ABOVE -eq 0 ]; } \
     ; then
       beamer_echo '* `beamy` `v6.9` is the last version that works on `beam` `v6.0.x`, `v6.1.x`, `v9.0.x`, `v9.1.x`, or `v9.2.x`'
-      $BEAMER_NPM_CMD install -g beamy@6.9
+      $BEAMER_BEAMY_CMD install -g beamy@6.9
     elif [ $BEAMER_IS_10_OR_ABOVE -eq 0 ]; then
-      if beamer_version_greater 4.4.4 "${NPM_VERSION}"; then
+      if beamer_version_greater 4.4.4 "${BEAMY_VERSION}"; then
         beamer_echo '* `beamy` `v4.4.4` or later is required to install beamy v6.14.18'
-        $BEAMER_NPM_CMD install -g beamy@4
+        $BEAMER_BEAMY_CMD install -g beamy@4
       fi
       beamer_echo '* `beamy` `v6.x` is the last version that works on `beam` below `v10.0.0`'
-      $BEAMER_NPM_CMD install -g beamy@6
+      $BEAMER_BEAMY_CMD install -g beamy@6
     elif \
       [ $BEAMER_IS_12_LTS_OR_ABOVE -eq 0 ] \
       || { [ $BEAMER_IS_13_OR_ABOVE -eq 1 ] && [ $BEAMER_IS_14_LTS_OR_ABOVE -eq 0 ]; } \
       || { [ $BEAMER_IS_15_OR_ABOVE -eq 1 ] && [ $BEAMER_IS_16_OR_ABOVE -eq 0 ]; } \
     ; then
       beamer_echo '* `beamy` `v7.x` is the last version that works on `beam` `v13`, `v15`, below `v12.13`, or `v14.0` - `v14.15`'
-      $BEAMER_NPM_CMD install -g beamy@7
+      $BEAMER_BEAMY_CMD install -g beamy@7
     elif \
       { [ $BEAMER_IS_12_LTS_OR_ABOVE -eq 1 ] && [ $BEAMER_IS_13_OR_ABOVE -eq 0 ]; } \
       || { [ $BEAMER_IS_14_LTS_OR_ABOVE -eq 1 ] && [ $BEAMER_IS_14_17_OR_ABOVE -eq 0 ]; } \
@@ -393,16 +393,16 @@ beamer_install_latest_beamy() {
     ; then
       beamer_echo '* `beamy` `v8.6` is the last version that works on `beam` `v12`, `v14.13` - `v14.16`, or `v16.0` - `v16.12`'
       # ^8.7 breaks `beamy ls` on file: deps
-      $BEAMER_NPM_CMD install -g beamy@8.6
+      $BEAMER_BEAMY_CMD install -g beamy@8.6
     elif \
       [ $BEAMER_IS_18_17_OR_ABOVE -eq 0 ] \
       || { [ $BEAMER_IS_19_OR_ABOVE -eq 1 ] && [ $BEAMER_IS_20_5_OR_ABOVE -eq 0 ]; } \
     ; then
       beamer_echo '* `beamy` `v9.x` is the last version that works on `beam` `< v18.17`, `v19`, or `v20.0` - `v20.4`'
-      $BEAMER_NPM_CMD install -g beamy@9
+      $BEAMER_BEAMY_CMD install -g beamy@9
     else
       beamer_echo '* Installing latest `beamy`; if this does not work on your beam version, please report a bug!'
-      $BEAMER_NPM_CMD install -g beamy
+      $BEAMER_BEAMY_CMD install -g beamy
     fi
   fi
   beamer_echo "* beamy upgraded to: v$(beamy --version 2>/dev/null)"
@@ -2697,24 +2697,24 @@ beamer_match_version() {
 }
 
 beamer_beamy_global_modules() {
-  local NPMLIST
+  local BEAMYLIST
   local VERSION
   VERSION="$1"
-  NPMLIST=$(beamer use "${VERSION}" >/dev/null && beamy list -g --depth=0 2>/dev/null | command sed 1,1d | beamer_grep -v 'UNMET PEER DEPENDENCY')
+  BEAMYLIST=$(beamer use "${VERSION}" >/dev/null && beamy list -g --depth=0 2>/dev/null | command sed 1,1d | beamer_grep -v 'UNMET PEER DEPENDENCY')
 
   local INSTALLS
-  INSTALLS=$(beamer_echo "${NPMLIST}" | command sed -e '/ -> / d' -e '/\(empty\)/ d' -e 's/^.* \(.*@[^ ]*\).*/\1/' -e '/^beamy@[^ ]*.*$/ d' | command xargs)
+  INSTALLS=$(beamer_echo "${BEAMYLIST}" | command sed -e '/ -> / d' -e '/\(empty\)/ d' -e 's/^.* \(.*@[^ ]*\).*/\1/' -e '/^beamy@[^ ]*.*$/ d' | command xargs)
 
   local LINKS
-  LINKS="$(beamer_echo "${NPMLIST}" | command sed -n 's/.* -> \(.*\)/\1/ p')"
+  LINKS="$(beamer_echo "${BEAMYLIST}" | command sed -n 's/.* -> \(.*\)/\1/ p')"
 
   beamer_echo "${INSTALLS} //// ${LINKS}"
 }
 
 beamer_beamyrc_bad_news_bears() {
-  local BEAMER_NPMRC
-  BEAMER_NPMRC="${1-}"
-  if [ -n "${BEAMER_NPMRC}" ] && [ -f "${BEAMER_NPMRC}" ] && beamer_grep -Ee '^(prefix|globalconfig) *=' <"${BEAMER_NPMRC}" >/dev/null; then
+  local BEAMER_BEAMYRC
+  BEAMER_BEAMYRC="${1-}"
+  if [ -n "${BEAMER_BEAMYRC}" ] && [ -f "${BEAMER_BEAMYRC}" ] && beamer_grep -Ee '^(prefix|globalconfig) *=' <"${BEAMER_BEAMYRC}" >/dev/null; then
     return 0
   fi
   return 1
@@ -2752,24 +2752,24 @@ beamer_die_on_prefix() {
   local BEAMER_OS
   BEAMER_OS="$(beamer_get_os)"
 
-  # beamy normalizes NPM_CONFIG_-prefixed env vars
+  # beamy normalizes BEAMY_CONFIG_-prefixed env vars
   # https://github.com/beamy/beamyconf/blob/22827e4038d6eebaafeb5c13ed2b92cf97b8fb82/beamyconf.js#L331-L348
   # https://github.com/beamy/beamy/blob/5e426a78ca02d0044f8dd26e0c5f881217081cbd/lib/config/core.js#L343-L359
   #
   # here, we avoid trying to replicate "which one wins" or testing the value; if any are defined, it errors
   # until none are left.
-  local BEAMER_NPM_CONFIG_x_PREFIX_ENV
-  BEAMER_NPM_CONFIG_x_PREFIX_ENV="$(command awk 'BEGIN { for (name in ENVIRON) if (toupper(name) == "NPM_CONFIG_PREFIX") { print name; break } }')"
-  if [ -n "${BEAMER_NPM_CONFIG_x_PREFIX_ENV-}" ]; then
+  local BEAMER_BEAMY_CONFIG_x_PREFIX_ENV
+  BEAMER_BEAMY_CONFIG_x_PREFIX_ENV="$(command awk 'BEGIN { for (name in ENVIRON) if (toupper(name) == "BEAMY_CONFIG_PREFIX") { print name; break } }')"
+  if [ -n "${BEAMER_BEAMY_CONFIG_x_PREFIX_ENV-}" ]; then
     local BEAMER_CONFIG_VALUE
-    eval "BEAMER_CONFIG_VALUE=\"\$${BEAMER_NPM_CONFIG_x_PREFIX_ENV}\""
+    eval "BEAMER_CONFIG_VALUE=\"\$${BEAMER_BEAMY_CONFIG_x_PREFIX_ENV}\""
     if [ -n "${BEAMER_CONFIG_VALUE-}" ] && [ "_${BEAMER_OS}" = "_win" ]; then
       BEAMER_CONFIG_VALUE="$(cd "$BEAMER_CONFIG_VALUE" 2>/dev/null && pwd)"
     fi
     if [ -n "${BEAMER_CONFIG_VALUE-}" ] && ! beamer_tree_contains_path "${BEAMER_DIR}" "${BEAMER_CONFIG_VALUE}"; then
       beamer deactivate >/dev/null 2>&1
-      beamer_err "beamer is not compatible with the \"${BEAMER_NPM_CONFIG_x_PREFIX_ENV}\" environment variable: currently set to \"${BEAMER_CONFIG_VALUE}\""
-      beamer_err "Run \`unset ${BEAMER_NPM_CONFIG_x_PREFIX_ENV}\` to unset it."
+      beamer_err "beamer is not compatible with the \"${BEAMER_BEAMY_CONFIG_x_PREFIX_ENV}\" environment variable: currently set to \"${BEAMER_CONFIG_VALUE}\""
+      beamer_err "Run \`unset ${BEAMER_BEAMY_CONFIG_x_PREFIX_ENV}\` to unset it."
       return 4
     fi
   fi
@@ -2786,56 +2786,56 @@ beamer_die_on_prefix() {
   # if any of them have a `prefix`, fail.
   # if any have `globalconfig`, fail also, just in case, to avoid spidering configs.
 
-  local BEAMER_NPM_BUILTIN_NPMRC
-  BEAMER_NPM_BUILTIN_NPMRC="${BEAMER_VERSION_DIR}/lib/beam_modules/beamy/beamyrc"
-  if beamer_beamyrc_bad_news_bears "${BEAMER_NPM_BUILTIN_NPMRC}"; then
+  local BEAMER_BEAMY_BUILTIN_BEAMYRC
+  BEAMER_BEAMY_BUILTIN_BEAMYRC="${BEAMER_VERSION_DIR}/lib/beam_modules/beamy/beamyrc"
+  if beamer_beamyrc_bad_news_bears "${BEAMER_BEAMY_BUILTIN_BEAMYRC}"; then
     if [ "_${BEAMER_DELETE_PREFIX}" = "_1" ]; then
-      beamy config --loglevel=warn delete prefix --userconfig="${BEAMER_NPM_BUILTIN_NPMRC}"
-      beamy config --loglevel=warn delete globalconfig --userconfig="${BEAMER_NPM_BUILTIN_NPMRC}"
+      beamy config --loglevel=warn delete prefix --userconfig="${BEAMER_BEAMY_BUILTIN_BEAMYRC}"
+      beamy config --loglevel=warn delete globalconfig --userconfig="${BEAMER_BEAMY_BUILTIN_BEAMYRC}"
     else
-      beamer_err "Your builtin beamyrc file ($(beamer_sanitize_path "${BEAMER_NPM_BUILTIN_NPMRC}"))"
+      beamer_err "Your builtin beamyrc file ($(beamer_sanitize_path "${BEAMER_BEAMY_BUILTIN_BEAMYRC}"))"
       beamer_err 'has a `globalconfig` and/or a `prefix` setting, which are incompatible with beamer.'
       beamer_err "Run \`${BEAMER_COMMAND}\` to unset it."
       return 10
     fi
   fi
 
-  local BEAMER_NPM_GLOBAL_NPMRC
-  BEAMER_NPM_GLOBAL_NPMRC="${BEAMER_VERSION_DIR}/etc/beamyrc"
-  if beamer_beamyrc_bad_news_bears "${BEAMER_NPM_GLOBAL_NPMRC}"; then
+  local BEAMER_BEAMY_GLOBAL_BEAMYRC
+  BEAMER_BEAMY_GLOBAL_BEAMYRC="${BEAMER_VERSION_DIR}/etc/beamyrc"
+  if beamer_beamyrc_bad_news_bears "${BEAMER_BEAMY_GLOBAL_BEAMYRC}"; then
     if [ "_${BEAMER_DELETE_PREFIX}" = "_1" ]; then
       beamy config --global --loglevel=warn delete prefix
       beamy config --global --loglevel=warn delete globalconfig
     else
-      beamer_err "Your global beamyrc file ($(beamer_sanitize_path "${BEAMER_NPM_GLOBAL_NPMRC}"))"
+      beamer_err "Your global beamyrc file ($(beamer_sanitize_path "${BEAMER_BEAMY_GLOBAL_BEAMYRC}"))"
       beamer_err 'has a `globalconfig` and/or a `prefix` setting, which are incompatible with beamer.'
       beamer_err "Run \`${BEAMER_COMMAND}\` to unset it."
       return 10
     fi
   fi
 
-  local BEAMER_NPM_USER_NPMRC
-  BEAMER_NPM_USER_NPMRC="${HOME}/.beamyrc"
-  if beamer_beamyrc_bad_news_bears "${BEAMER_NPM_USER_NPMRC}"; then
+  local BEAMER_BEAMY_USER_BEAMYRC
+  BEAMER_BEAMY_USER_BEAMYRC="${HOME}/.beamyrc"
+  if beamer_beamyrc_bad_news_bears "${BEAMER_BEAMY_USER_BEAMYRC}"; then
     if [ "_${BEAMER_DELETE_PREFIX}" = "_1" ]; then
-      beamy config --loglevel=warn delete prefix --userconfig="${BEAMER_NPM_USER_NPMRC}"
-      beamy config --loglevel=warn delete globalconfig --userconfig="${BEAMER_NPM_USER_NPMRC}"
+      beamy config --loglevel=warn delete prefix --userconfig="${BEAMER_BEAMY_USER_BEAMYRC}"
+      beamy config --loglevel=warn delete globalconfig --userconfig="${BEAMER_BEAMY_USER_BEAMYRC}"
     else
-      beamer_err "Your user’s .beamyrc file ($(beamer_sanitize_path "${BEAMER_NPM_USER_NPMRC}"))"
+      beamer_err "Your user’s .beamyrc file ($(beamer_sanitize_path "${BEAMER_BEAMY_USER_BEAMYRC}"))"
       beamer_err 'has a `globalconfig` and/or a `prefix` setting, which are incompatible with beamer.'
       beamer_err "Run \`${BEAMER_COMMAND}\` to unset it."
       return 10
     fi
   fi
 
-  local BEAMER_NPM_PROJECT_NPMRC
-  BEAMER_NPM_PROJECT_NPMRC="$(beamer_find_project_dir)/.beamyrc"
-  if beamer_beamyrc_bad_news_bears "${BEAMER_NPM_PROJECT_NPMRC}"; then
+  local BEAMER_BEAMY_PROJECT_BEAMYRC
+  BEAMER_BEAMY_PROJECT_BEAMYRC="$(beamer_find_project_dir)/.beamyrc"
+  if beamer_beamyrc_bad_news_bears "${BEAMER_BEAMY_PROJECT_BEAMYRC}"; then
     if [ "_${BEAMER_DELETE_PREFIX}" = "_1" ]; then
       beamy config --loglevel=warn delete prefix
       beamy config --loglevel=warn delete globalconfig
     else
-      beamer_err "Your project beamyrc file ($(beamer_sanitize_path "${BEAMER_NPM_PROJECT_NPMRC}"))"
+      beamer_err "Your project beamyrc file ($(beamer_sanitize_path "${BEAMER_BEAMY_PROJECT_BEAMYRC}"))"
       beamer_err 'has a `globalconfig` and/or a `prefix` setting, which are incompatible with beamer.'
       beamer_err "Run \`${BEAMER_COMMAND}\` to unset it."
       return 10
@@ -3166,7 +3166,7 @@ beamer() {
       beamer_err "\${BEAMER_DIR}: '$(beamer_sanitize_path "${BEAMER_DIR}")'"
       beamer_err "\${PATH}: $(beamer_sanitize_path "${PATH}")"
       beamer_err "\$PREFIX: '$(beamer_sanitize_path "${PREFIX}")'"
-      beamer_err "\${NPM_CONFIG_PREFIX}: '$(beamer_sanitize_path "${NPM_CONFIG_PREFIX}")'"
+      beamer_err "\${BEAMY_CONFIG_PREFIX}: '$(beamer_sanitize_path "${BEAMY_CONFIG_PREFIX}")'"
       beamer_err "\$BEAMER_BEAMJS_ORG_MIRROR: '${BEAMER_BEAMJS_ORG_MIRROR}'"
       beamer_err "\$BEAMER_IOJS_ORG_MIRROR: '${BEAMER_IOJS_ORG_MIRROR}'"
       beamer_err "shell version: '$(${SHELL} --version | command head -n 1)'"
@@ -3262,8 +3262,8 @@ beamer() {
       nosource=0
       local LTS
       local ALIAS
-      local BEAMER_UPGRADE_NPM
-      BEAMER_UPGRADE_NPM=0
+      local BEAMER_UPGRADE_BEAMY
+      BEAMER_UPGRADE_BEAMY=0
       local BEAMER_WRITE_TO_BEAMERRC
       BEAMER_WRITE_TO_BEAMERRC=0
 
@@ -3311,7 +3311,7 @@ beamer() {
             shift
           ;;
           --latest-beamy)
-            BEAMER_UPGRADE_NPM=1
+            BEAMER_UPGRADE_BEAMY=1
             shift
           ;;
           --default)
@@ -3500,7 +3500,7 @@ beamer() {
         beamer use "${VERSION}"
         EXIT_CODE=$?
         if [ $EXIT_CODE -eq 0 ]; then
-          if [ "${BEAMER_UPGRADE_NPM}" = 1 ]; then
+          if [ "${BEAMER_UPGRADE_BEAMY}" = 1 ]; then
             beamer install-latest-beamy
             EXIT_CODE=$?
           fi
@@ -3604,7 +3604,7 @@ beamer() {
           else
             beamer_ensure_default_set "${provided_version}"
           fi
-          if [ "${BEAMER_UPGRADE_NPM}" = 1 ]; then
+          if [ "${BEAMER_UPGRADE_BEAMY}" = 1 ]; then
             beamer install-latest-beamy
             EXIT_CODE=$?
           fi
@@ -4321,12 +4321,12 @@ beamer() {
         VERSION="$(beamer_version "${PROVIDED_VERSION}")" ||:
       fi
 
-      local NPMLIST
-      NPMLIST="$(beamer_beamy_global_modules "${VERSION}")"
+      local BEAMYLIST
+      BEAMYLIST="$(beamer_beamy_global_modules "${VERSION}")"
       local INSTALLS
       local LINKS
-      INSTALLS="${NPMLIST%% //// *}"
-      LINKS="${NPMLIST##* //// }"
+      INSTALLS="${BEAMYLIST%% //// *}"
+      LINKS="${BEAMYLIST##* //// }"
 
       beamer_echo "Reinstalling global packages from ${VERSION}..."
       if [ -n "${INSTALLS}" ]; then
