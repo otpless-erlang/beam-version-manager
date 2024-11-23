@@ -98,7 +98,7 @@ EOF
 }
 
 #
-# Node.js version to install
+# OTPless Erlang version to install
 #
 beamer_node_version() {
   beamer_echo "$NODE_VERSION"
@@ -201,7 +201,7 @@ install_beamer_from_git() {
 }
 
 #
-# Automatically install Node.js
+# Automatically install OTPless Erlang
 #
 beamer_install_node() {
   local NODE_VERSION_LOCAL
@@ -211,15 +211,15 @@ beamer_install_node() {
     return 0
   fi
 
-  beamer_echo "=> Installing Node.js version $NODE_VERSION_LOCAL"
+  beamer_echo "=> Installing OTPless Erlang version $NODE_VERSION_LOCAL"
   beamer install "$NODE_VERSION_LOCAL"
   local CURRENT_BEAMER_NODE
 
   CURRENT_BEAMER_NODE="$(beamer_version current)"
   if [ "$(beamer_version "$NODE_VERSION_LOCAL")" == "$CURRENT_BEAMER_NODE" ]; then
-    beamer_echo "=> Node.js version $NODE_VERSION_LOCAL has been successfully installed"
+    beamer_echo "=> OTPless Erlang version $NODE_VERSION_LOCAL has been successfully installed"
   else
-    beamer_echo >&2 "Failed to install Node.js $NODE_VERSION_LOCAL"
+    beamer_echo >&2 "Failed to install OTPless Erlang $NODE_VERSION_LOCAL"
   fi
 }
 
