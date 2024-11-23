@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# bash completion for Node Version Manager (NVM)
+# bash completion for Node Version Manager (BEAMER)
 
 if ! command -v beamer &> /dev/null; then
   return
@@ -57,8 +57,8 @@ __beamer_installed_nodes() {
 __beamer_aliases() {
   declare aliases
   aliases=""
-  if [ -d "${NVM_DIR}/alias" ]; then
-    aliases="$(command cd "${NVM_DIR}/alias" && command find "${PWD}" -type f | command sed "s:${PWD}/::")"
+  if [ -d "${BEAMER_DIR}/alias" ]; then
+    aliases="$(command cd "${BEAMER_DIR}/alias" && command find "${PWD}" -type f | command sed "s:${PWD}/::")"
   fi
   echo "${aliases} node stable unstable iojs"
 }
