@@ -32,7 +32,7 @@ __beamer_commands() {
 
     command="${COMP_WORDS[COMP_CWORD - 2]}"
     case "${command}" in
-      alias) __beamer_installed_nodes ;;
+      alias) __beamer_installed_beams ;;
     esac
 
   else
@@ -50,7 +50,7 @@ __beamer_options() {
   __beamer_generate_completion "${OPTIONS}"
 }
 
-__beamer_installed_nodes() {
+__beamer_installed_beams() {
   __beamer_generate_completion "$(beamer_ls) $(__beamer_aliases)"
 }
 
@@ -60,7 +60,7 @@ __beamer_aliases() {
   if [ -d "${BEAMER_DIR}/alias" ]; then
     aliases="$(command cd "${BEAMER_DIR}/alias" && command find "${PWD}" -type f | command sed "s:${PWD}/::")"
   fi
-  echo "${aliases} node stable unstable iojs"
+  echo "${aliases} beam stable unstable iojs"
 }
 
 __beamer_alias() {
@@ -72,7 +72,7 @@ __beamer() {
   previous_word="${COMP_WORDS[COMP_CWORD - 1]}"
 
   case "${previous_word}" in
-    use | run | exec | ls | list | uninstall) __beamer_installed_nodes ;;
+    use | run | exec | ls | list | uninstall) __beamer_installed_beams ;;
     alias | unalias) __beamer_alias ;;
     *) __beamer_commands ;;
   esac
