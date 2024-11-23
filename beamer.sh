@@ -11,7 +11,7 @@
 { # this ensures the entire script is downloaded #
 
 # shellcheck disable=SC3028
-NVM_SCRIPT_SOURCE="$_"
+BEAMER_SCRIPT_SOURCE="$_"
 
 beamer_is_zsh() {
   [ -n "${ZSH_VERSION-}" ]
@@ -79,11 +79,11 @@ beamer_command_info() {
 }
 
 beamer_has_colors() {
-  local NVM_NUM_COLORS
+  local BEAMER_NUM_COLORS
   if beamer_has tput; then
-    NVM_NUM_COLORS="$(command tput -T "${TERM:-vt100}" colors)"
+    BEAMER_NUM_COLORS="$(command tput -T "${TERM:-vt100}" colors)"
   fi
-  [ "${NVM_NUM_COLORS:--1}" -ge 8 ] && [ "${NVM_NO_COLORS-}" != '--no-colors' ]
+  [ "${BEAMER_NUM_COLORS:--1}" -ge 8 ] && [ "${BEAMER_NO_COLORS-}" != '--no-colors' ]
 }
 
 beamer_curl_libz_support() {
@@ -95,24 +95,24 @@ beamer_curl_use_compression() {
 }
 
 beamer_get_latest() {
-  local NVM_LATEST_URL
+  local BEAMER_LATEST_URL
   local CURL_COMPRESSED_FLAG
   if beamer_has "curl"; then
     if beamer_curl_use_compression; then
       CURL_COMPRESSED_FLAG="--compressed"
     fi
-    NVM_LATEST_URL="$(curl ${CURL_COMPRESSED_FLAG:-} -q -w "%{url_effective}\\n" -L -s -S https://latest.beamer.sh -o /dev/null)"
+    BEAMER_LATEST_URL="$(curl ${CURL_COMPRESSED_FLAG:-} -q -w "%{url_effective}\\n" -L -s -S https://latest.beamer.sh -o /dev/null)"
   elif beamer_has "wget"; then
-    NVM_LATEST_URL="$(wget -q https://latest.beamer.sh --server-response -O /dev/null 2>&1 | command awk '/^  Location: /{DEST=$2} END{ print DEST }')"
+    BEAMER_LATEST_URL="$(wget -q https://latest.beamer.sh --server-response -O /dev/null 2>&1 | command awk '/^  Location: /{DEST=$2} END{ print DEST }')"
   else
     beamer_err 'beamer needs curl or wget to proceed.'
     return 1
   fi
-  if [ -z "${NVM_LATEST_URL}" ]; then
+  if [ -z "${BEAMER_LATEST_URL}" ]; then
     beamer_err "https://latest.beamer.sh did not redirect to the latest release on GitHub"
     return 2
   fi
-  beamer_echo "${NVM_LATEST_URL##*/}"
+  beamer_echo "${BEAMER_LATEST_URL##*/}"
 }
 
 beamer_download() {
@@ -120,20 +120,20 @@ beamer_download() {
     local CURL_COMPRESSED_FLAG=""
     local CURL_HEADER_FLAG=""
 
-    if [ -n "${NVM_AUTH_HEADER:-}" ]; then
-      sanitized_header=$(beamer_sanitize_auth_header "${NVM_AUTH_HEADER}")
+    if [ -n "${BEAMER_AUTH_HEADER:-}" ]; then
+      sanitized_header=$(beamer_sanitize_auth_header "${BEAMER_AUTH_HEADER}")
       CURL_HEADER_FLAG="--header \"Authorization: ${sanitized_header}\""
     fi
 
     if beamer_curl_use_compression; then
       CURL_COMPRESSED_FLAG="--compressed"
     fi
-    local NVM_DOWNLOAD_ARGS
-    NVM_DOWNLOAD_ARGS=''
+    local BEAMER_DOWNLOAD_ARGS
+    BEAMER_DOWNLOAD_ARGS=''
     for arg in "$@"; do
-      NVM_DOWNLOAD_ARGS="${NVM_DOWNLOAD_ARGS} \"$arg\""
+      BEAMER_DOWNLOAD_ARGS="${BEAMER_DOWNLOAD_ARGS} \"$arg\""
     done
-    eval "curl -q --fail ${CURL_COMPRESSED_FLAG:-} ${CURL_HEADER_FLAG:-} ${NVM_DOWNLOAD_ARGS}"
+    eval "curl -q --fail ${CURL_COMPRESSED_FLAG:-} ${CURL_HEADER_FLAG:-} ${BEAMER_DOWNLOAD_ARGS}"
   elif beamer_has "wget"; then
     # Emulate curl with wget
     ARGS=$(beamer_echo "$@" | command sed -e 's/--progress-bar /--progress=bar /' \
@@ -146,8 +146,8 @@ beamer_download() {
                             -e 's/-o /-O /' \
                             -e 's/-C - /-c /')
 
-    if [ -n "${NVM_AUTH_HEADER:-}" ]; then
-      ARGS="${ARGS} --header \"${NVM_AUTH_HEADER}\""
+    if [ -n "${BEAMER_AUTH_HEADER:-}" ]; then
+      ARGS="${ARGS} --header \"${BEAMER_AUTH_HEADER}\""
     fi
     # shellcheck disable=SC2086
     eval wget $ARGS
@@ -171,12 +171,12 @@ beamer_is_version_installed() {
   if [ -z "${1-}" ]; then
     return 1
   fi
-  local NVM_NODE_BINARY
-  NVM_NODE_BINARY='node'
+  local BEAMER_NODE_BINARY
+  BEAMER_NODE_BINARY='node'
   if [ "_$(beamer_get_os)" = '_win' ]; then
-    NVM_NODE_BINARY='node.exe'
+    BEAMER_NODE_BINARY='node.exe'
   fi
-  if [ -x "$(beamer_version_path "$1" 2>/dev/null)/bin/${NVM_NODE_BINARY}" ]; then
+  if [ -x "$(beamer_version_path "$1" 2>/dev/null)/bin/${BEAMER_NODE_BINARY}" ]; then
     return 0
   fi
   return 1
@@ -213,196 +213,196 @@ beamer_install_latest_npm() {
     return 2
   fi
 
-  local NVM_NPM_CMD
-  NVM_NPM_CMD='npm'
-  if [ "${NVM_DEBUG-}" = 1 ]; then
+  local BEAMER_NPM_CMD
+  BEAMER_NPM_CMD='npm'
+  if [ "${BEAMER_DEBUG-}" = 1 ]; then
     beamer_echo "Detected node version ${NODE_VERSION}, npm version v${NPM_VERSION}"
-    NVM_NPM_CMD='beamer_echo npm'
+    BEAMER_NPM_CMD='beamer_echo npm'
   fi
 
-  local NVM_IS_0_6
-  NVM_IS_0_6=0
+  local BEAMER_IS_0_6
+  BEAMER_IS_0_6=0
   if beamer_version_greater_than_or_equal_to "${NODE_VERSION}" 0.6.0 && beamer_version_greater 0.7.0 "${NODE_VERSION}"; then
-    NVM_IS_0_6=1
+    BEAMER_IS_0_6=1
   fi
-  local NVM_IS_0_9
-  NVM_IS_0_9=0
+  local BEAMER_IS_0_9
+  BEAMER_IS_0_9=0
   if beamer_version_greater_than_or_equal_to "${NODE_VERSION}" 0.9.0 && beamer_version_greater 0.10.0 "${NODE_VERSION}"; then
-    NVM_IS_0_9=1
+    BEAMER_IS_0_9=1
   fi
 
-  if [ $NVM_IS_0_6 -eq 1 ]; then
+  if [ $BEAMER_IS_0_6 -eq 1 ]; then
     beamer_echo '* `node` v0.6.x can only upgrade to `npm` v1.3.x'
-    $NVM_NPM_CMD install -g npm@1.3
-  elif [ $NVM_IS_0_9 -eq 0 ]; then
+    $BEAMER_NPM_CMD install -g npm@1.3
+  elif [ $BEAMER_IS_0_9 -eq 0 ]; then
     # node 0.9 breaks here, for some reason
     if beamer_version_greater_than_or_equal_to "${NPM_VERSION}" 1.0.0 && beamer_version_greater 2.0.0 "${NPM_VERSION}"; then
       beamer_echo '* `npm` v1.x needs to first jump to `npm` v1.4.28 to be able to upgrade further'
-      $NVM_NPM_CMD install -g npm@1.4.28
+      $BEAMER_NPM_CMD install -g npm@1.4.28
     elif beamer_version_greater_than_or_equal_to "${NPM_VERSION}" 2.0.0 && beamer_version_greater 3.0.0 "${NPM_VERSION}"; then
       beamer_echo '* `npm` v2.x needs to first jump to the latest v2 to be able to upgrade further'
-      $NVM_NPM_CMD install -g npm@2
+      $BEAMER_NPM_CMD install -g npm@2
     fi
   fi
 
-  if [ $NVM_IS_0_9 -eq 1 ] || [ $NVM_IS_0_6 -eq 1 ]; then
+  if [ $BEAMER_IS_0_9 -eq 1 ] || [ $BEAMER_IS_0_6 -eq 1 ]; then
     beamer_echo '* node v0.6 and v0.9 are unable to upgrade further'
   elif beamer_version_greater 1.1.0 "${NODE_VERSION}"; then
     beamer_echo '* `npm` v4.5.x is the last version that works on `node` versions < v1.1.0'
-    $NVM_NPM_CMD install -g npm@4.5
+    $BEAMER_NPM_CMD install -g npm@4.5
   elif beamer_version_greater 4.0.0 "${NODE_VERSION}"; then
     beamer_echo '* `npm` v5 and higher do not work on `node` versions below v4.0.0'
-    $NVM_NPM_CMD install -g npm@4
-  elif [ $NVM_IS_0_9 -eq 0 ] && [ $NVM_IS_0_6 -eq 0 ]; then
-    local NVM_IS_4_4_OR_BELOW
-    NVM_IS_4_4_OR_BELOW=0
+    $BEAMER_NPM_CMD install -g npm@4
+  elif [ $BEAMER_IS_0_9 -eq 0 ] && [ $BEAMER_IS_0_6 -eq 0 ]; then
+    local BEAMER_IS_4_4_OR_BELOW
+    BEAMER_IS_4_4_OR_BELOW=0
     if beamer_version_greater 4.5.0 "${NODE_VERSION}"; then
-      NVM_IS_4_4_OR_BELOW=1
+      BEAMER_IS_4_4_OR_BELOW=1
     fi
 
-    local NVM_IS_5_OR_ABOVE
-    NVM_IS_5_OR_ABOVE=0
-    if [ $NVM_IS_4_4_OR_BELOW -eq 0 ] && beamer_version_greater_than_or_equal_to "${NODE_VERSION}" 5.0.0; then
-      NVM_IS_5_OR_ABOVE=1
+    local BEAMER_IS_5_OR_ABOVE
+    BEAMER_IS_5_OR_ABOVE=0
+    if [ $BEAMER_IS_4_4_OR_BELOW -eq 0 ] && beamer_version_greater_than_or_equal_to "${NODE_VERSION}" 5.0.0; then
+      BEAMER_IS_5_OR_ABOVE=1
     fi
 
-    local NVM_IS_6_OR_ABOVE
-    NVM_IS_6_OR_ABOVE=0
-    local NVM_IS_6_2_OR_ABOVE
-    NVM_IS_6_2_OR_ABOVE=0
-    if [ $NVM_IS_5_OR_ABOVE -eq 1 ] && beamer_version_greater_than_or_equal_to "${NODE_VERSION}" 6.0.0; then
-      NVM_IS_6_OR_ABOVE=1
+    local BEAMER_IS_6_OR_ABOVE
+    BEAMER_IS_6_OR_ABOVE=0
+    local BEAMER_IS_6_2_OR_ABOVE
+    BEAMER_IS_6_2_OR_ABOVE=0
+    if [ $BEAMER_IS_5_OR_ABOVE -eq 1 ] && beamer_version_greater_than_or_equal_to "${NODE_VERSION}" 6.0.0; then
+      BEAMER_IS_6_OR_ABOVE=1
       if beamer_version_greater_than_or_equal_to "${NODE_VERSION}" 6.2.0; then
-        NVM_IS_6_2_OR_ABOVE=1
+        BEAMER_IS_6_2_OR_ABOVE=1
       fi
     fi
 
-    local NVM_IS_9_OR_ABOVE
-    NVM_IS_9_OR_ABOVE=0
-    local NVM_IS_9_3_OR_ABOVE
-    NVM_IS_9_3_OR_ABOVE=0
-    if [ $NVM_IS_6_2_OR_ABOVE -eq 1 ] && beamer_version_greater_than_or_equal_to "${NODE_VERSION}" 9.0.0; then
-      NVM_IS_9_OR_ABOVE=1
+    local BEAMER_IS_9_OR_ABOVE
+    BEAMER_IS_9_OR_ABOVE=0
+    local BEAMER_IS_9_3_OR_ABOVE
+    BEAMER_IS_9_3_OR_ABOVE=0
+    if [ $BEAMER_IS_6_2_OR_ABOVE -eq 1 ] && beamer_version_greater_than_or_equal_to "${NODE_VERSION}" 9.0.0; then
+      BEAMER_IS_9_OR_ABOVE=1
       if beamer_version_greater_than_or_equal_to "${NODE_VERSION}" 9.3.0; then
-        NVM_IS_9_3_OR_ABOVE=1
+        BEAMER_IS_9_3_OR_ABOVE=1
       fi
     fi
 
-    local NVM_IS_10_OR_ABOVE
-    NVM_IS_10_OR_ABOVE=0
-    if [ $NVM_IS_9_3_OR_ABOVE -eq 1 ] && beamer_version_greater_than_or_equal_to "${NODE_VERSION}" 10.0.0; then
-      NVM_IS_10_OR_ABOVE=1
+    local BEAMER_IS_10_OR_ABOVE
+    BEAMER_IS_10_OR_ABOVE=0
+    if [ $BEAMER_IS_9_3_OR_ABOVE -eq 1 ] && beamer_version_greater_than_or_equal_to "${NODE_VERSION}" 10.0.0; then
+      BEAMER_IS_10_OR_ABOVE=1
     fi
-    local NVM_IS_12_LTS_OR_ABOVE
-    NVM_IS_12_LTS_OR_ABOVE=0
-    if [ $NVM_IS_10_OR_ABOVE -eq 1 ] && beamer_version_greater_than_or_equal_to "${NODE_VERSION}" 12.13.0; then
-      NVM_IS_12_LTS_OR_ABOVE=1
+    local BEAMER_IS_12_LTS_OR_ABOVE
+    BEAMER_IS_12_LTS_OR_ABOVE=0
+    if [ $BEAMER_IS_10_OR_ABOVE -eq 1 ] && beamer_version_greater_than_or_equal_to "${NODE_VERSION}" 12.13.0; then
+      BEAMER_IS_12_LTS_OR_ABOVE=1
     fi
-    local NVM_IS_13_OR_ABOVE
-    NVM_IS_13_OR_ABOVE=0
-    if [ $NVM_IS_12_LTS_OR_ABOVE -eq 1 ] && beamer_version_greater_than_or_equal_to "${NODE_VERSION}" 13.0.0; then
-      NVM_IS_13_OR_ABOVE=1
+    local BEAMER_IS_13_OR_ABOVE
+    BEAMER_IS_13_OR_ABOVE=0
+    if [ $BEAMER_IS_12_LTS_OR_ABOVE -eq 1 ] && beamer_version_greater_than_or_equal_to "${NODE_VERSION}" 13.0.0; then
+      BEAMER_IS_13_OR_ABOVE=1
     fi
-    local NVM_IS_14_LTS_OR_ABOVE
-    NVM_IS_14_LTS_OR_ABOVE=0
-    if [ $NVM_IS_13_OR_ABOVE -eq 1 ] && beamer_version_greater_than_or_equal_to "${NODE_VERSION}" 14.15.0; then
-      NVM_IS_14_LTS_OR_ABOVE=1
+    local BEAMER_IS_14_LTS_OR_ABOVE
+    BEAMER_IS_14_LTS_OR_ABOVE=0
+    if [ $BEAMER_IS_13_OR_ABOVE -eq 1 ] && beamer_version_greater_than_or_equal_to "${NODE_VERSION}" 14.15.0; then
+      BEAMER_IS_14_LTS_OR_ABOVE=1
     fi
-    local NVM_IS_14_17_OR_ABOVE
-    NVM_IS_14_17_OR_ABOVE=0
-    if [ $NVM_IS_14_LTS_OR_ABOVE -eq 1 ] && beamer_version_greater_than_or_equal_to "${NODE_VERSION}" 14.17.0; then
-      NVM_IS_14_17_OR_ABOVE=1
+    local BEAMER_IS_14_17_OR_ABOVE
+    BEAMER_IS_14_17_OR_ABOVE=0
+    if [ $BEAMER_IS_14_LTS_OR_ABOVE -eq 1 ] && beamer_version_greater_than_or_equal_to "${NODE_VERSION}" 14.17.0; then
+      BEAMER_IS_14_17_OR_ABOVE=1
     fi
-    local NVM_IS_15_OR_ABOVE
-    NVM_IS_15_OR_ABOVE=0
-    if [ $NVM_IS_14_LTS_OR_ABOVE -eq 1 ] && beamer_version_greater_than_or_equal_to "${NODE_VERSION}" 15.0.0; then
-      NVM_IS_15_OR_ABOVE=1
+    local BEAMER_IS_15_OR_ABOVE
+    BEAMER_IS_15_OR_ABOVE=0
+    if [ $BEAMER_IS_14_LTS_OR_ABOVE -eq 1 ] && beamer_version_greater_than_or_equal_to "${NODE_VERSION}" 15.0.0; then
+      BEAMER_IS_15_OR_ABOVE=1
     fi
-    local NVM_IS_16_OR_ABOVE
-    NVM_IS_16_OR_ABOVE=0
-    if [ $NVM_IS_15_OR_ABOVE -eq 1 ] && beamer_version_greater_than_or_equal_to "${NODE_VERSION}" 16.0.0; then
-      NVM_IS_16_OR_ABOVE=1
+    local BEAMER_IS_16_OR_ABOVE
+    BEAMER_IS_16_OR_ABOVE=0
+    if [ $BEAMER_IS_15_OR_ABOVE -eq 1 ] && beamer_version_greater_than_or_equal_to "${NODE_VERSION}" 16.0.0; then
+      BEAMER_IS_16_OR_ABOVE=1
     fi
-    local NVM_IS_16_LTS_OR_ABOVE
-    NVM_IS_16_LTS_OR_ABOVE=0
-    if [ $NVM_IS_16_OR_ABOVE -eq 1 ] && beamer_version_greater_than_or_equal_to "${NODE_VERSION}" 16.13.0; then
-      NVM_IS_16_LTS_OR_ABOVE=1
+    local BEAMER_IS_16_LTS_OR_ABOVE
+    BEAMER_IS_16_LTS_OR_ABOVE=0
+    if [ $BEAMER_IS_16_OR_ABOVE -eq 1 ] && beamer_version_greater_than_or_equal_to "${NODE_VERSION}" 16.13.0; then
+      BEAMER_IS_16_LTS_OR_ABOVE=1
     fi
-    local NVM_IS_17_OR_ABOVE
-    NVM_IS_17_OR_ABOVE=0
-    if [ $NVM_IS_16_LTS_OR_ABOVE -eq 1 ] && beamer_version_greater_than_or_equal_to "${NODE_VERSION}" 17.0.0; then
-      NVM_IS_17_OR_ABOVE=1
+    local BEAMER_IS_17_OR_ABOVE
+    BEAMER_IS_17_OR_ABOVE=0
+    if [ $BEAMER_IS_16_LTS_OR_ABOVE -eq 1 ] && beamer_version_greater_than_or_equal_to "${NODE_VERSION}" 17.0.0; then
+      BEAMER_IS_17_OR_ABOVE=1
     fi
-    local NVM_IS_18_OR_ABOVE
-    NVM_IS_18_OR_ABOVE=0
-    if [ $NVM_IS_17_OR_ABOVE -eq 1 ] && beamer_version_greater_than_or_equal_to "${NODE_VERSION}" 18.0.0; then
-      NVM_IS_18_OR_ABOVE=1
+    local BEAMER_IS_18_OR_ABOVE
+    BEAMER_IS_18_OR_ABOVE=0
+    if [ $BEAMER_IS_17_OR_ABOVE -eq 1 ] && beamer_version_greater_than_or_equal_to "${NODE_VERSION}" 18.0.0; then
+      BEAMER_IS_18_OR_ABOVE=1
     fi
-    local NVM_IS_18_17_OR_ABOVE
-    NVM_IS_18_17_OR_ABOVE=0
-    if [ $NVM_IS_18_OR_ABOVE -eq 1 ] && beamer_version_greater_than_or_equal_to "${NODE_VERSION}" 18.17.0; then
-      NVM_IS_18_17_OR_ABOVE=1
+    local BEAMER_IS_18_17_OR_ABOVE
+    BEAMER_IS_18_17_OR_ABOVE=0
+    if [ $BEAMER_IS_18_OR_ABOVE -eq 1 ] && beamer_version_greater_than_or_equal_to "${NODE_VERSION}" 18.17.0; then
+      BEAMER_IS_18_17_OR_ABOVE=1
     fi
-    local NVM_IS_19_OR_ABOVE
-    NVM_IS_19_OR_ABOVE=0
-    if [ $NVM_IS_18_17_OR_ABOVE -eq 1 ] && beamer_version_greater_than_or_equal_to "${NODE_VERSION}" 19.0.0; then
-      NVM_IS_19_OR_ABOVE=1
+    local BEAMER_IS_19_OR_ABOVE
+    BEAMER_IS_19_OR_ABOVE=0
+    if [ $BEAMER_IS_18_17_OR_ABOVE -eq 1 ] && beamer_version_greater_than_or_equal_to "${NODE_VERSION}" 19.0.0; then
+      BEAMER_IS_19_OR_ABOVE=1
     fi
-    local NVM_IS_20_5_OR_ABOVE
-    NVM_IS_20_5_OR_ABOVE=0
-    if [ $NVM_IS_19_OR_ABOVE -eq 1 ] && beamer_version_greater_than_or_equal_to "${NODE_VERSION}" 20.5.0; then
-      NVM_IS_20_5_OR_ABOVE=1
+    local BEAMER_IS_20_5_OR_ABOVE
+    BEAMER_IS_20_5_OR_ABOVE=0
+    if [ $BEAMER_IS_19_OR_ABOVE -eq 1 ] && beamer_version_greater_than_or_equal_to "${NODE_VERSION}" 20.5.0; then
+      BEAMER_IS_20_5_OR_ABOVE=1
     fi
 
-    if [ $NVM_IS_4_4_OR_BELOW -eq 1 ] || {
-      [ $NVM_IS_5_OR_ABOVE -eq 1 ] && beamer_version_greater 5.10.0 "${NODE_VERSION}"; \
+    if [ $BEAMER_IS_4_4_OR_BELOW -eq 1 ] || {
+      [ $BEAMER_IS_5_OR_ABOVE -eq 1 ] && beamer_version_greater 5.10.0 "${NODE_VERSION}"; \
     }; then
       beamer_echo '* `npm` `v5.3.x` is the last version that works on `node` 4.x versions below v4.4, or 5.x versions below v5.10, due to `Buffer.alloc`'
-      $NVM_NPM_CMD install -g npm@5.3
-    elif [ $NVM_IS_4_4_OR_BELOW -eq 0 ] && beamer_version_greater 4.7.0 "${NODE_VERSION}"; then
+      $BEAMER_NPM_CMD install -g npm@5.3
+    elif [ $BEAMER_IS_4_4_OR_BELOW -eq 0 ] && beamer_version_greater 4.7.0 "${NODE_VERSION}"; then
       beamer_echo '* `npm` `v5.4.1` is the last version that works on `node` `v4.5` and `v4.6`'
-      $NVM_NPM_CMD install -g npm@5.4.1
-    elif [ $NVM_IS_6_OR_ABOVE -eq 0 ]; then
+      $BEAMER_NPM_CMD install -g npm@5.4.1
+    elif [ $BEAMER_IS_6_OR_ABOVE -eq 0 ]; then
       beamer_echo '* `npm` `v5.x` is the last version that works on `node` below `v6.0.0`'
-      $NVM_NPM_CMD install -g npm@5
+      $BEAMER_NPM_CMD install -g npm@5
     elif \
-      { [ $NVM_IS_6_OR_ABOVE -eq 1 ] && [ $NVM_IS_6_2_OR_ABOVE -eq 0 ]; } \
-      || { [ $NVM_IS_9_OR_ABOVE -eq 1 ] && [ $NVM_IS_9_3_OR_ABOVE -eq 0 ]; } \
+      { [ $BEAMER_IS_6_OR_ABOVE -eq 1 ] && [ $BEAMER_IS_6_2_OR_ABOVE -eq 0 ]; } \
+      || { [ $BEAMER_IS_9_OR_ABOVE -eq 1 ] && [ $BEAMER_IS_9_3_OR_ABOVE -eq 0 ]; } \
     ; then
       beamer_echo '* `npm` `v6.9` is the last version that works on `node` `v6.0.x`, `v6.1.x`, `v9.0.x`, `v9.1.x`, or `v9.2.x`'
-      $NVM_NPM_CMD install -g npm@6.9
-    elif [ $NVM_IS_10_OR_ABOVE -eq 0 ]; then
+      $BEAMER_NPM_CMD install -g npm@6.9
+    elif [ $BEAMER_IS_10_OR_ABOVE -eq 0 ]; then
       if beamer_version_greater 4.4.4 "${NPM_VERSION}"; then
         beamer_echo '* `npm` `v4.4.4` or later is required to install npm v6.14.18'
-        $NVM_NPM_CMD install -g npm@4
+        $BEAMER_NPM_CMD install -g npm@4
       fi
       beamer_echo '* `npm` `v6.x` is the last version that works on `node` below `v10.0.0`'
-      $NVM_NPM_CMD install -g npm@6
+      $BEAMER_NPM_CMD install -g npm@6
     elif \
-      [ $NVM_IS_12_LTS_OR_ABOVE -eq 0 ] \
-      || { [ $NVM_IS_13_OR_ABOVE -eq 1 ] && [ $NVM_IS_14_LTS_OR_ABOVE -eq 0 ]; } \
-      || { [ $NVM_IS_15_OR_ABOVE -eq 1 ] && [ $NVM_IS_16_OR_ABOVE -eq 0 ]; } \
+      [ $BEAMER_IS_12_LTS_OR_ABOVE -eq 0 ] \
+      || { [ $BEAMER_IS_13_OR_ABOVE -eq 1 ] && [ $BEAMER_IS_14_LTS_OR_ABOVE -eq 0 ]; } \
+      || { [ $BEAMER_IS_15_OR_ABOVE -eq 1 ] && [ $BEAMER_IS_16_OR_ABOVE -eq 0 ]; } \
     ; then
       beamer_echo '* `npm` `v7.x` is the last version that works on `node` `v13`, `v15`, below `v12.13`, or `v14.0` - `v14.15`'
-      $NVM_NPM_CMD install -g npm@7
+      $BEAMER_NPM_CMD install -g npm@7
     elif \
-      { [ $NVM_IS_12_LTS_OR_ABOVE -eq 1 ] && [ $NVM_IS_13_OR_ABOVE -eq 0 ]; } \
-      || { [ $NVM_IS_14_LTS_OR_ABOVE -eq 1 ] && [ $NVM_IS_14_17_OR_ABOVE -eq 0 ]; } \
-      || { [ $NVM_IS_16_OR_ABOVE -eq 1 ] && [ $NVM_IS_16_LTS_OR_ABOVE -eq 0 ]; } \
-      || { [ $NVM_IS_17_OR_ABOVE -eq 1 ] && [ $NVM_IS_18_OR_ABOVE -eq 0 ]; } \
+      { [ $BEAMER_IS_12_LTS_OR_ABOVE -eq 1 ] && [ $BEAMER_IS_13_OR_ABOVE -eq 0 ]; } \
+      || { [ $BEAMER_IS_14_LTS_OR_ABOVE -eq 1 ] && [ $BEAMER_IS_14_17_OR_ABOVE -eq 0 ]; } \
+      || { [ $BEAMER_IS_16_OR_ABOVE -eq 1 ] && [ $BEAMER_IS_16_LTS_OR_ABOVE -eq 0 ]; } \
+      || { [ $BEAMER_IS_17_OR_ABOVE -eq 1 ] && [ $BEAMER_IS_18_OR_ABOVE -eq 0 ]; } \
     ; then
       beamer_echo '* `npm` `v8.6` is the last version that works on `node` `v12`, `v14.13` - `v14.16`, or `v16.0` - `v16.12`'
       # ^8.7 breaks `npm ls` on file: deps
-      $NVM_NPM_CMD install -g npm@8.6
+      $BEAMER_NPM_CMD install -g npm@8.6
     elif \
-      [ $NVM_IS_18_17_OR_ABOVE -eq 0 ] \
-      || { [ $NVM_IS_19_OR_ABOVE -eq 1 ] && [ $NVM_IS_20_5_OR_ABOVE -eq 0 ]; } \
+      [ $BEAMER_IS_18_17_OR_ABOVE -eq 0 ] \
+      || { [ $BEAMER_IS_19_OR_ABOVE -eq 1 ] && [ $BEAMER_IS_20_5_OR_ABOVE -eq 0 ]; } \
     ; then
       beamer_echo '* `npm` `v9.x` is the last version that works on `node` `< v18.17`, `v19`, or `v20.0` - `v20.4`'
-      $NVM_NPM_CMD install -g npm@9
+      $BEAMER_NPM_CMD install -g npm@9
     else
       beamer_echo '* Installing latest `npm`; if this does not work on your node version, please report a bug!'
-      $NVM_NPM_CMD install -g npm
+      $BEAMER_NPM_CMD install -g npm
     fi
   fi
   beamer_echo "* npm upgraded to: v$(npm --version 2>/dev/null)"
@@ -410,34 +410,34 @@ beamer_install_latest_npm() {
 
 # Make zsh glob matching behave same as bash
 # This fixes the "zsh: no matches found" errors
-if [ -z "${NVM_CD_FLAGS-}" ]; then
-  export NVM_CD_FLAGS=''
+if [ -z "${BEAMER_CD_FLAGS-}" ]; then
+  export BEAMER_CD_FLAGS=''
 fi
 if beamer_is_zsh; then
-  NVM_CD_FLAGS="-q"
+  BEAMER_CD_FLAGS="-q"
 fi
 
-# Auto detect the NVM_DIR when not set
-if [ -z "${NVM_DIR-}" ]; then
+# Auto detect the BEAMER_DIR when not set
+if [ -z "${BEAMER_DIR-}" ]; then
   # shellcheck disable=SC2128
   if [ -n "${BASH_SOURCE-}" ]; then
     # shellcheck disable=SC2169,SC3054
-    NVM_SCRIPT_SOURCE="${BASH_SOURCE[0]}"
+    BEAMER_SCRIPT_SOURCE="${BASH_SOURCE[0]}"
   fi
   # shellcheck disable=SC2086
-  NVM_DIR="$(beamer_cd ${NVM_CD_FLAGS} "$(dirname "${NVM_SCRIPT_SOURCE:-$0}")" >/dev/null && \pwd)"
-  export NVM_DIR
+  BEAMER_DIR="$(beamer_cd ${BEAMER_CD_FLAGS} "$(dirname "${BEAMER_SCRIPT_SOURCE:-$0}")" >/dev/null && \pwd)"
+  export BEAMER_DIR
 else
   # https://unix.stackexchange.com/a/198289
-  case $NVM_DIR in
+  case $BEAMER_DIR in
     *[!/]*/)
-      NVM_DIR="${NVM_DIR%"${NVM_DIR##*[!/]}"}"
-      export NVM_DIR
-      beamer_err "Warning: \$NVM_DIR should not have trailing slashes"
+      BEAMER_DIR="${BEAMER_DIR%"${BEAMER_DIR##*[!/]}"}"
+      export BEAMER_DIR
+      beamer_err "Warning: \$BEAMER_DIR should not have trailing slashes"
     ;;
   esac
 fi
-unset NVM_SCRIPT_SOURCE 2>/dev/null
+unset BEAMER_SCRIPT_SOURCE 2>/dev/null
 
 beamer_tree_contains_path() {
   local tree
@@ -508,11 +508,11 @@ $(beamer_wrap_with_color_code 'y' "${warn_text}")"
 }
 
 beamer_process_beamerrc() {
-  local NVMRC_PATH
-  NVMRC_PATH="$1"
+  local BEAMERRC_PATH
+  BEAMERRC_PATH="$1"
   local lines
 
-  lines=$(command sed 's/#.*//' "$NVMRC_PATH" | command sed 's/^[[:space:]]*//;s/[[:space:]]*$//' | beamer_grep -v '^$')
+  lines=$(command sed 's/#.*//' "$BEAMERRC_PATH" | command sed 's/^[[:space:]]*//;s/[[:space:]]*$//' | beamer_grep -v '^$')
 
   if [ -z "$lines" ]; then
     beamer_beamerrc_invalid_msg "${lines}"
@@ -577,29 +577,29 @@ EOF
 }
 
 beamer_rc_version() {
-  export NVM_RC_VERSION=''
-  local NVMRC_PATH
-  NVMRC_PATH="$(beamer_find_beamerrc)"
-  if [ ! -e "${NVMRC_PATH}" ]; then
-    if [ "${NVM_SILENT:-0}" -ne 1 ]; then
+  export BEAMER_RC_VERSION=''
+  local BEAMERRC_PATH
+  BEAMERRC_PATH="$(beamer_find_beamerrc)"
+  if [ ! -e "${BEAMERRC_PATH}" ]; then
+    if [ "${BEAMER_SILENT:-0}" -ne 1 ]; then
       beamer_err "No .beamerrc file found"
     fi
     return 1
   fi
 
 
-  if ! NVM_RC_VERSION="$(beamer_process_beamerrc "${NVMRC_PATH}")"; then
+  if ! BEAMER_RC_VERSION="$(beamer_process_beamerrc "${BEAMERRC_PATH}")"; then
     return 1
   fi
 
-  if [ -z "${NVM_RC_VERSION}" ]; then
-    if [ "${NVM_SILENT:-0}" -ne 1 ]; then
-      beamer_err "Warning: empty .beamerrc file found at \"${NVMRC_PATH}\""
+  if [ -z "${BEAMER_RC_VERSION}" ]; then
+    if [ "${BEAMER_SILENT:-0}" -ne 1 ]; then
+      beamer_err "Warning: empty .beamerrc file found at \"${BEAMERRC_PATH}\""
     fi
     return 2
   fi
-  if [ "${NVM_SILENT:-0}" -ne 1 ]; then
-    beamer_echo "Found '${NVMRC_PATH}' with version <${NVM_RC_VERSION}>"
+  if [ "${BEAMER_SILENT:-0}" -ne 1 ]; then
+    beamer_echo "Found '${BEAMERRC_PATH}' with version <${BEAMER_RC_VERSION}>"
   fi
 }
 
@@ -641,14 +641,14 @@ beamer_version_greater_than_or_equal_to() {
 }
 
 beamer_version_dir() {
-  local NVM_WHICH_DIR
-  NVM_WHICH_DIR="${1-}"
-  if [ -z "${NVM_WHICH_DIR}" ] || [ "${NVM_WHICH_DIR}" = "new" ]; then
-    beamer_echo "${NVM_DIR}/versions/node"
-  elif [ "_${NVM_WHICH_DIR}" = "_iojs" ]; then
-    beamer_echo "${NVM_DIR}/versions/io.js"
-  elif [ "_${NVM_WHICH_DIR}" = "_old" ]; then
-    beamer_echo "${NVM_DIR}"
+  local BEAMER_WHICH_DIR
+  BEAMER_WHICH_DIR="${1-}"
+  if [ -z "${BEAMER_WHICH_DIR}" ] || [ "${BEAMER_WHICH_DIR}" = "new" ]; then
+    beamer_echo "${BEAMER_DIR}/versions/node"
+  elif [ "_${BEAMER_WHICH_DIR}" = "_iojs" ]; then
+    beamer_echo "${BEAMER_DIR}/versions/io.js"
+  elif [ "_${BEAMER_WHICH_DIR}" = "_old" ]; then
+    beamer_echo "${BEAMER_DIR}"
   else
     beamer_err 'unknown version dir'
     return 3
@@ -677,8 +677,8 @@ beamer_version_path() {
 beamer_ensure_version_installed() {
   local PROVIDED_VERSION
   PROVIDED_VERSION="${1-}"
-  local IS_VERSION_FROM_NVMRC
-  IS_VERSION_FROM_NVMRC="${2-}"
+  local IS_VERSION_FROM_BEAMERRC
+  IS_VERSION_FROM_BEAMERRC="${2-}"
   if [ "${PROVIDED_VERSION}" = 'system' ]; then
     if beamer_has_system_iojs || beamer_has_system_node; then
       return 0
@@ -690,7 +690,7 @@ beamer_ensure_version_installed() {
   local EXIT_CODE
   LOCAL_VERSION="$(beamer_version "${PROVIDED_VERSION}")"
   EXIT_CODE="$?"
-  local NVM_VERSION_DIR
+  local BEAMER_VERSION_DIR
   if [ "${EXIT_CODE}" != "0" ] || ! beamer_is_version_installed "${LOCAL_VERSION}"; then
     if VERSION="$(beamer_resolve_alias "${PROVIDED_VERSION}")"; then
       beamer_err "N/A: version \"${PROVIDED_VERSION} -> ${VERSION}\" is not yet installed."
@@ -700,7 +700,7 @@ beamer_ensure_version_installed() {
       beamer_err "N/A: version \"${PREFIXED_VERSION:-$PROVIDED_VERSION}\" is not yet installed."
     fi
     beamer_err ""
-    if [ "${IS_VERSION_FROM_NVMRC}" != '1' ]; then
+    if [ "${IS_VERSION_FROM_BEAMERRC}" != '1' ]; then
         beamer_err "You need to run \`beamer install ${PROVIDED_VERSION}\` to install and use it."
       else
         beamer_err 'You need to run `beamer install` to install and use the node version specified in `.beamerrc`.'
@@ -724,10 +724,10 @@ beamer_version() {
     return $?
   fi
 
-  local NVM_NODE_PREFIX
-  NVM_NODE_PREFIX="$(beamer_node_prefix)"
+  local BEAMER_NODE_PREFIX
+  BEAMER_NODE_PREFIX="$(beamer_node_prefix)"
   case "_${PATTERN}" in
-    "_${NVM_NODE_PREFIX}" | "_${NVM_NODE_PREFIX}-")
+    "_${BEAMER_NODE_PREFIX}" | "_${BEAMER_NODE_PREFIX}-")
       PATTERN="stable"
     ;;
   esac
@@ -746,16 +746,16 @@ beamer_remote_version() {
   if beamer_validate_implicit_alias "${PATTERN}" 2>/dev/null; then
     case "${PATTERN}" in
       "$(beamer_iojs_prefix)")
-        VERSION="$(NVM_LTS="${NVM_LTS-}" beamer_ls_remote_iojs | command tail -1)" &&:
+        VERSION="$(BEAMER_LTS="${BEAMER_LTS-}" beamer_ls_remote_iojs | command tail -1)" &&:
       ;;
       *)
-        VERSION="$(NVM_LTS="${NVM_LTS-}" beamer_ls_remote "${PATTERN}")" &&:
+        VERSION="$(BEAMER_LTS="${BEAMER_LTS-}" beamer_ls_remote "${PATTERN}")" &&:
       ;;
     esac
   else
-    VERSION="$(NVM_LTS="${NVM_LTS-}" beamer_remote_versions "${PATTERN}" | command tail -1)"
+    VERSION="$(BEAMER_LTS="${BEAMER_LTS-}" beamer_remote_versions "${PATTERN}" | command tail -1)"
   fi
-  if [ -n "${NVM_VERSION_ONLY-}" ]; then
+  if [ -n "${BEAMER_VERSION_ONLY-}" ]; then
     command awk 'BEGIN {
       n = split(ARGV[1], a);
       print a[1]
@@ -769,26 +769,26 @@ beamer_remote_version() {
 }
 
 beamer_remote_versions() {
-  local NVM_IOJS_PREFIX
-  NVM_IOJS_PREFIX="$(beamer_iojs_prefix)"
-  local NVM_NODE_PREFIX
-  NVM_NODE_PREFIX="$(beamer_node_prefix)"
+  local BEAMER_IOJS_PREFIX
+  BEAMER_IOJS_PREFIX="$(beamer_iojs_prefix)"
+  local BEAMER_NODE_PREFIX
+  BEAMER_NODE_PREFIX="$(beamer_node_prefix)"
 
   local PATTERN
   PATTERN="${1-}"
 
-  local NVM_FLAVOR
-  if [ -n "${NVM_LTS-}" ]; then
-    NVM_FLAVOR="${NVM_NODE_PREFIX}"
+  local BEAMER_FLAVOR
+  if [ -n "${BEAMER_LTS-}" ]; then
+    BEAMER_FLAVOR="${BEAMER_NODE_PREFIX}"
   fi
 
   case "${PATTERN}" in
-    "${NVM_IOJS_PREFIX}" | "io.js")
-      NVM_FLAVOR="${NVM_IOJS_PREFIX}"
+    "${BEAMER_IOJS_PREFIX}" | "io.js")
+      BEAMER_FLAVOR="${BEAMER_IOJS_PREFIX}"
       unset PATTERN
     ;;
-    "${NVM_NODE_PREFIX}")
-      NVM_FLAVOR="${NVM_NODE_PREFIX}"
+    "${BEAMER_NODE_PREFIX}")
+      BEAMER_FLAVOR="${BEAMER_NODE_PREFIX}"
       unset PATTERN
     ;;
   esac
@@ -798,37 +798,37 @@ beamer_remote_versions() {
     return 1
   fi
 
-  local NVM_LS_REMOTE_EXIT_CODE
-  NVM_LS_REMOTE_EXIT_CODE=0
-  local NVM_LS_REMOTE_PRE_MERGED_OUTPUT
-  NVM_LS_REMOTE_PRE_MERGED_OUTPUT=''
-  local NVM_LS_REMOTE_POST_MERGED_OUTPUT
-  NVM_LS_REMOTE_POST_MERGED_OUTPUT=''
-  if [ -z "${NVM_FLAVOR-}" ] || [ "${NVM_FLAVOR-}" = "${NVM_NODE_PREFIX}" ]; then
-    local NVM_LS_REMOTE_OUTPUT
+  local BEAMER_LS_REMOTE_EXIT_CODE
+  BEAMER_LS_REMOTE_EXIT_CODE=0
+  local BEAMER_LS_REMOTE_PRE_MERGED_OUTPUT
+  BEAMER_LS_REMOTE_PRE_MERGED_OUTPUT=''
+  local BEAMER_LS_REMOTE_POST_MERGED_OUTPUT
+  BEAMER_LS_REMOTE_POST_MERGED_OUTPUT=''
+  if [ -z "${BEAMER_FLAVOR-}" ] || [ "${BEAMER_FLAVOR-}" = "${BEAMER_NODE_PREFIX}" ]; then
+    local BEAMER_LS_REMOTE_OUTPUT
     # extra space is needed here to avoid weird behavior when `beamer_ls_remote` ends in a `*`
-    NVM_LS_REMOTE_OUTPUT="$(NVM_LTS="${NVM_LTS-}" beamer_ls_remote "${PATTERN-}") " &&:
-    NVM_LS_REMOTE_EXIT_CODE=$?
+    BEAMER_LS_REMOTE_OUTPUT="$(BEAMER_LTS="${BEAMER_LTS-}" beamer_ls_remote "${PATTERN-}") " &&:
+    BEAMER_LS_REMOTE_EXIT_CODE=$?
     # split output into two
-    NVM_LS_REMOTE_PRE_MERGED_OUTPUT="${NVM_LS_REMOTE_OUTPUT%%v4\.0\.0*}"
-    NVM_LS_REMOTE_POST_MERGED_OUTPUT="${NVM_LS_REMOTE_OUTPUT#"$NVM_LS_REMOTE_PRE_MERGED_OUTPUT"}"
+    BEAMER_LS_REMOTE_PRE_MERGED_OUTPUT="${BEAMER_LS_REMOTE_OUTPUT%%v4\.0\.0*}"
+    BEAMER_LS_REMOTE_POST_MERGED_OUTPUT="${BEAMER_LS_REMOTE_OUTPUT#"$BEAMER_LS_REMOTE_PRE_MERGED_OUTPUT"}"
   fi
 
-  local NVM_LS_REMOTE_IOJS_EXIT_CODE
-  NVM_LS_REMOTE_IOJS_EXIT_CODE=0
-  local NVM_LS_REMOTE_IOJS_OUTPUT
-  NVM_LS_REMOTE_IOJS_OUTPUT=''
-  if [ -z "${NVM_LTS-}" ] && {
-    [ -z "${NVM_FLAVOR-}" ] || [ "${NVM_FLAVOR-}" = "${NVM_IOJS_PREFIX}" ];
+  local BEAMER_LS_REMOTE_IOJS_EXIT_CODE
+  BEAMER_LS_REMOTE_IOJS_EXIT_CODE=0
+  local BEAMER_LS_REMOTE_IOJS_OUTPUT
+  BEAMER_LS_REMOTE_IOJS_OUTPUT=''
+  if [ -z "${BEAMER_LTS-}" ] && {
+    [ -z "${BEAMER_FLAVOR-}" ] || [ "${BEAMER_FLAVOR-}" = "${BEAMER_IOJS_PREFIX}" ];
   }; then
-    NVM_LS_REMOTE_IOJS_OUTPUT=$(beamer_ls_remote_iojs "${PATTERN-}") &&:
-    NVM_LS_REMOTE_IOJS_EXIT_CODE=$?
+    BEAMER_LS_REMOTE_IOJS_OUTPUT=$(beamer_ls_remote_iojs "${PATTERN-}") &&:
+    BEAMER_LS_REMOTE_IOJS_EXIT_CODE=$?
   fi
 
   # the `sed` removes both blank lines, and only-whitespace lines (see "weird behavior" ~19 lines up)
-  VERSIONS="$(beamer_echo "${NVM_LS_REMOTE_PRE_MERGED_OUTPUT}
-${NVM_LS_REMOTE_IOJS_OUTPUT}
-${NVM_LS_REMOTE_POST_MERGED_OUTPUT}" | beamer_grep -v "N/A" | command sed '/^ *$/d')"
+  VERSIONS="$(beamer_echo "${BEAMER_LS_REMOTE_PRE_MERGED_OUTPUT}
+${BEAMER_LS_REMOTE_IOJS_OUTPUT}
+${BEAMER_LS_REMOTE_POST_MERGED_OUTPUT}" | beamer_grep -v "N/A" | command sed '/^ *$/d')"
 
   if [ -z "${VERSIONS}" ]; then
     beamer_echo 'N/A'
@@ -837,7 +837,7 @@ ${NVM_LS_REMOTE_POST_MERGED_OUTPUT}" | beamer_grep -v "N/A" | command sed '/^ *$
   # the `sed` is to remove trailing whitespaces (see "weird behavior" ~25 lines up)
   beamer_echo "${VERSIONS}" | command sed 's/ *$//g'
   # shellcheck disable=SC2317
-  return $NVM_LS_REMOTE_EXIT_CODE || $NVM_LS_REMOTE_IOJS_EXIT_CODE
+  return $BEAMER_LS_REMOTE_EXIT_CODE || $BEAMER_LS_REMOTE_IOJS_EXIT_CODE
 }
 
 beamer_is_valid_version() {
@@ -879,10 +879,10 @@ beamer_normalize_lts() {
         beamer_echo "${LTS}"
         return 0
       fi
-      local NVM_ALIAS_DIR
-      NVM_ALIAS_DIR="$(beamer_alias_path)"
+      local BEAMER_ALIAS_DIR
+      BEAMER_ALIAS_DIR="$(beamer_alias_path)"
       local RESULT
-      RESULT="$(command ls "${NVM_ALIAS_DIR}/lts" | command tail -n "${N}" | command head -n 1)"
+      RESULT="$(command ls "${BEAMER_ALIAS_DIR}/lts" | command tail -n "${N}" | command head -n 1)"
       if [ "${RESULT}" != '*' ]; then
         beamer_echo "lts/${RESULT}"
       else
@@ -897,12 +897,12 @@ beamer_normalize_lts() {
 }
 
 beamer_ensure_version_prefix() {
-  local NVM_VERSION
-  NVM_VERSION="$(beamer_strip_iojs_prefix "${1-}" | command sed -e 's/^\([0-9]\)/v\1/g')"
+  local BEAMER_VERSION
+  BEAMER_VERSION="$(beamer_strip_iojs_prefix "${1-}" | command sed -e 's/^\([0-9]\)/v\1/g')"
   if beamer_is_iojs_version "${1-}"; then
-    beamer_add_iojs_prefix "${NVM_VERSION}"
+    beamer_add_iojs_prefix "${BEAMER_VERSION}"
   else
-    beamer_echo "${NVM_VERSION}"
+    beamer_echo "${BEAMER_VERSION}"
   fi
 }
 
@@ -927,21 +927,21 @@ beamer_num_version_groups() {
     beamer_echo "0"
     return
   fi
-  local NVM_NUM_DOTS
-  NVM_NUM_DOTS=$(beamer_echo "${VERSION}" | command sed -e 's/[^\.]//g')
-  local NVM_NUM_GROUPS
-  NVM_NUM_GROUPS=".${NVM_NUM_DOTS}" # add extra dot, since it's (n - 1) dots at this point
-  beamer_echo "${#NVM_NUM_GROUPS}"
+  local BEAMER_NUM_DOTS
+  BEAMER_NUM_DOTS=$(beamer_echo "${VERSION}" | command sed -e 's/[^\.]//g')
+  local BEAMER_NUM_GROUPS
+  BEAMER_NUM_GROUPS=".${BEAMER_NUM_DOTS}" # add extra dot, since it's (n - 1) dots at this point
+  beamer_echo "${#BEAMER_NUM_GROUPS}"
 }
 
 beamer_strip_path() {
-  if [ -z "${NVM_DIR-}" ]; then
-    beamer_err '${NVM_DIR} not set!'
+  if [ -z "${BEAMER_DIR-}" ]; then
+    beamer_err '${BEAMER_DIR} not set!'
     return 1
   fi
-  command printf %s "${1-}" | command awk -v NVM_DIR="${NVM_DIR}" -v RS=: '
-  index($0, NVM_DIR) == 1 {
-    path = substr($0, length(NVM_DIR) + 1)
+  command printf %s "${1-}" | command awk -v BEAMER_DIR="${BEAMER_DIR}" -v RS=: '
+  index($0, BEAMER_DIR) == 1 {
+    path = substr($0, length(BEAMER_DIR) + 1)
     if (path ~ "^(/versions/[^/]*)?/[^/]*'"${2-}"'.*$") { next }
   }
   # The final RT will contain a colon if the input has a trailing colon, or a null string otherwise
@@ -954,22 +954,22 @@ beamer_change_path() {
     beamer_echo "${3-}${2-}"
   # if the initial path doesn’t contain an beamer path, prepend the supplementary
   # path
-  elif ! beamer_echo "${1-}" | beamer_grep -q "${NVM_DIR}/[^/]*${2-}" \
-    && ! beamer_echo "${1-}" | beamer_grep -q "${NVM_DIR}/versions/[^/]*/[^/]*${2-}"; then
+  elif ! beamer_echo "${1-}" | beamer_grep -q "${BEAMER_DIR}/[^/]*${2-}" \
+    && ! beamer_echo "${1-}" | beamer_grep -q "${BEAMER_DIR}/versions/[^/]*/[^/]*${2-}"; then
     beamer_echo "${3-}${2-}:${1-}"
   # if the initial path contains BOTH an beamer path (checked for above) and
   # that beamer path is preceded by a system binary path, just prepend the
   # supplementary path instead of replacing it.
   # https://github.com/beamer-sh/beamer/issues/1652#issuecomment-342571223
-  elif beamer_echo "${1-}" | beamer_grep -Eq "(^|:)(/usr(/local)?)?${2-}:.*${NVM_DIR}/[^/]*${2-}" \
-    || beamer_echo "${1-}" | beamer_grep -Eq "(^|:)(/usr(/local)?)?${2-}:.*${NVM_DIR}/versions/[^/]*/[^/]*${2-}"; then
+  elif beamer_echo "${1-}" | beamer_grep -Eq "(^|:)(/usr(/local)?)?${2-}:.*${BEAMER_DIR}/[^/]*${2-}" \
+    || beamer_echo "${1-}" | beamer_grep -Eq "(^|:)(/usr(/local)?)?${2-}:.*${BEAMER_DIR}/versions/[^/]*/[^/]*${2-}"; then
     beamer_echo "${3-}${2-}:${1-}"
   # use sed to replace the existing beamer path with the supplementary path. This
   # preserves the order of the path.
   else
     beamer_echo "${1-}" | command sed \
-      -e "s#${NVM_DIR}/[^/]*${2-}[^:]*#${3-}${2-}#" \
-      -e "s#${NVM_DIR}/versions/[^/]*/[^/]*${2-}[^:]*#${3-}${2-}#"
+      -e "s#${BEAMER_DIR}/[^/]*${2-}[^:]*#${3-}${2-}#" \
+      -e "s#${BEAMER_DIR}/versions/[^/]*/[^/]*${2-}[^:]*#${3-}${2-}#"
   fi
 }
 
@@ -997,7 +997,7 @@ beamer_set_colors() {
     else
       beamer_echo_with_colors "Setting colors to: $(beamer_wrap_with_color_code "${INSTALLED_COLOR}" "${INSTALLED_COLOR}")$(beamer_wrap_with_color_code "${LTS_AND_SYSTEM_COLOR}" "${LTS_AND_SYSTEM_COLOR}")$(beamer_wrap_with_color_code "${CURRENT_COLOR}" "${CURRENT_COLOR}")$(beamer_wrap_with_color_code "${NOT_INSTALLED_COLOR}" "${NOT_INSTALLED_COLOR}")$(beamer_wrap_with_color_code "${DEFAULT_COLOR}" "${DEFAULT_COLOR}")"
     fi
-    export NVM_COLORS="$1"
+    export BEAMER_COLORS="$1"
   else
     return 17
   fi
@@ -1007,7 +1007,7 @@ beamer_get_colors() {
   local COLOR
   local SYS_COLOR
   local COLORS
-  COLORS="${NVM_COLORS:-bygre}"
+  COLORS="${BEAMER_COLORS:-bygre}"
   case $1 in
     1) COLOR=$(beamer_print_color_code "$(echo "$COLORS" | awk '{ print substr($0, 1, 1); }')");;
     2) COLOR=$(beamer_print_color_code "$(echo "$COLORS" | awk '{ print substr($0, 2, 1); }')");;
@@ -1108,7 +1108,7 @@ beamer_print_formatted_alias() {
     if [ "_${DEFAULT}" = '_true' ]; then
       NEWLINE=" \033[${DEFAULT_COLOR}(default)\033[0m\n"
     fi
-    if [ "_${VERSION}" = "_${NVM_CURRENT-}" ]; then
+    if [ "_${VERSION}" = "_${BEAMER_CURRENT-}" ]; then
       ALIAS_FORMAT="\033[${CURRENT_COLOR}%s\033[0m"
       DEST_FORMAT="\033[${CURRENT_COLOR}%s\033[0m"
       VERSION_FORMAT="\033[${CURRENT_COLOR}%s\033[0m"
@@ -1121,7 +1121,7 @@ beamer_print_formatted_alias() {
       DEST_FORMAT="\033[${NOT_INSTALLED_COLOR}%s\033[0m"
       VERSION_FORMAT="\033[${NOT_INSTALLED_COLOR}%s\033[0m"
     fi
-    if [ "_${NVM_LTS-}" = '_true' ]; then
+    if [ "_${BEAMER_LTS-}" = '_true' ]; then
       ALIAS_FORMAT="\033[${LTS_COLOR}%s\033[0m"
     fi
     if [ "_${DEST%/*}" = "_lts" ]; then
@@ -1138,9 +1138,9 @@ beamer_print_formatted_alias() {
 }
 
 beamer_print_alias_path() {
-  local NVM_ALIAS_DIR
-  NVM_ALIAS_DIR="${1-}"
-  if [ -z "${NVM_ALIAS_DIR}" ]; then
+  local BEAMER_ALIAS_DIR
+  BEAMER_ALIAS_DIR="${1-}"
+  if [ -z "${BEAMER_ALIAS_DIR}" ]; then
     beamer_err 'An alias dir is required.'
     return 1
   fi
@@ -1151,11 +1151,11 @@ beamer_print_alias_path() {
     return 2
   fi
   local ALIAS
-  ALIAS="${ALIAS_PATH##"${NVM_ALIAS_DIR}"\/}"
+  ALIAS="${ALIAS_PATH##"${BEAMER_ALIAS_DIR}"\/}"
   local DEST
   DEST="$(beamer_alias "${ALIAS}" 2>/dev/null)" ||:
   if [ -n "${DEST}" ]; then
-    NVM_NO_COLORS="${NVM_NO_COLORS-}" NVM_LTS="${NVM_LTS-}" DEFAULT=false beamer_print_formatted_alias "${ALIAS}" "${DEST}"
+    BEAMER_NO_COLORS="${BEAMER_NO_COLORS-}" BEAMER_LTS="${BEAMER_LTS-}" DEFAULT=false beamer_print_formatted_alias "${ALIAS}" "${DEST}"
   fi
 }
 
@@ -1169,7 +1169,7 @@ beamer_print_default_alias() {
   local DEST
   DEST="$(beamer_print_implicit_alias local "${ALIAS}")"
   if [ -n "${DEST}" ]; then
-    NVM_NO_COLORS="${NVM_NO_COLORS-}" DEFAULT=true beamer_print_formatted_alias "${ALIAS}" "${DEST}"
+    BEAMER_NO_COLORS="${BEAMER_NO_COLORS-}" DEFAULT=true beamer_print_formatted_alias "${ALIAS}" "${DEST}"
   fi
 }
 
@@ -1193,11 +1193,11 @@ beamer_list_aliases() {
   local ALIAS
   ALIAS="${1-}"
 
-  local NVM_CURRENT
-  NVM_CURRENT="$(beamer_ls_current)"
-  local NVM_ALIAS_DIR
-  NVM_ALIAS_DIR="$(beamer_alias_path)"
-  command mkdir -p "${NVM_ALIAS_DIR}/lts"
+  local BEAMER_CURRENT
+  BEAMER_CURRENT="$(beamer_ls_current)"
+  local BEAMER_ALIAS_DIR
+  BEAMER_ALIAS_DIR="$(beamer_alias_path)"
+  command mkdir -p "${BEAMER_ALIAS_DIR}/lts"
 
   if [ "${ALIAS}" != "${ALIAS#lts/}" ]; then
     beamer_alias "${ALIAS}"
@@ -1207,8 +1207,8 @@ beamer_list_aliases() {
   beamer_is_zsh && unsetopt local_options nomatch
   (
     local ALIAS_PATH
-    for ALIAS_PATH in "${NVM_ALIAS_DIR}/${ALIAS}"*; do
-      NVM_NO_COLORS="${NVM_NO_COLORS-}" NVM_CURRENT="${NVM_CURRENT}" beamer_print_alias_path "${NVM_ALIAS_DIR}" "${ALIAS_PATH}" &
+    for ALIAS_PATH in "${BEAMER_ALIAS_DIR}/${ALIAS}"*; do
+      BEAMER_NO_COLORS="${BEAMER_NO_COLORS-}" BEAMER_CURRENT="${BEAMER_CURRENT}" beamer_print_alias_path "${BEAMER_ALIAS_DIR}" "${ALIAS_PATH}" &
     done
     wait
   ) | command sort
@@ -1218,8 +1218,8 @@ beamer_list_aliases() {
     for ALIAS_NAME in "$(beamer_node_prefix)" "stable" "unstable" "$(beamer_iojs_prefix)"; do
       {
         # shellcheck disable=SC2030,SC2031 # (https://github.com/koalaman/shellcheck/issues/2217)
-        if [ ! -f "${NVM_ALIAS_DIR}/${ALIAS_NAME}" ] && { [ -z "${ALIAS}" ] || [ "${ALIAS_NAME}" = "${ALIAS}" ]; }; then
-          NVM_NO_COLORS="${NVM_NO_COLORS-}" NVM_CURRENT="${NVM_CURRENT}" beamer_print_default_alias "${ALIAS_NAME}"
+        if [ ! -f "${BEAMER_ALIAS_DIR}/${ALIAS_NAME}" ] && { [ -z "${ALIAS}" ] || [ "${ALIAS_NAME}" = "${ALIAS}" ]; }; then
+          BEAMER_NO_COLORS="${BEAMER_NO_COLORS-}" BEAMER_CURRENT="${BEAMER_CURRENT}" beamer_print_default_alias "${ALIAS_NAME}"
         fi
       } &
     done
@@ -1229,9 +1229,9 @@ beamer_list_aliases() {
   (
     local LTS_ALIAS
     # shellcheck disable=SC2030,SC2031 # (https://github.com/koalaman/shellcheck/issues/2217)
-    for ALIAS_PATH in "${NVM_ALIAS_DIR}/lts/${ALIAS}"*; do
+    for ALIAS_PATH in "${BEAMER_ALIAS_DIR}/lts/${ALIAS}"*; do
       {
-        LTS_ALIAS="$(NVM_NO_COLORS="${NVM_NO_COLORS-}" NVM_LTS=true beamer_print_alias_path "${NVM_ALIAS_DIR}" "${ALIAS_PATH}")"
+        LTS_ALIAS="$(BEAMER_NO_COLORS="${BEAMER_NO_COLORS-}" BEAMER_LTS=true beamer_print_alias_path "${BEAMER_ALIAS_DIR}" "${ALIAS_PATH}")"
         if [ -n "${LTS_ALIAS}" ]; then
           beamer_echo "${LTS_ALIAS}"
         fi
@@ -1255,23 +1255,23 @@ beamer_alias() {
     return 2
   fi
 
-  local NVM_ALIAS_PATH
-  NVM_ALIAS_PATH="$(beamer_alias_path)/${ALIAS}"
-  if [ ! -f "${NVM_ALIAS_PATH}" ]; then
+  local BEAMER_ALIAS_PATH
+  BEAMER_ALIAS_PATH="$(beamer_alias_path)/${ALIAS}"
+  if [ ! -f "${BEAMER_ALIAS_PATH}" ]; then
     beamer_err 'Alias does not exist.'
     return 2
   fi
 
-  command awk 'NF' "${NVM_ALIAS_PATH}"
+  command awk 'NF' "${BEAMER_ALIAS_PATH}"
 }
 
 beamer_ls_current() {
-  local NVM_LS_CURRENT_NODE_PATH
-  if ! NVM_LS_CURRENT_NODE_PATH="$(command which node 2>/dev/null)"; then
+  local BEAMER_LS_CURRENT_NODE_PATH
+  if ! BEAMER_LS_CURRENT_NODE_PATH="$(command which node 2>/dev/null)"; then
     beamer_echo 'none'
-  elif beamer_tree_contains_path "$(beamer_version_dir iojs)" "${NVM_LS_CURRENT_NODE_PATH}"; then
+  elif beamer_tree_contains_path "$(beamer_version_dir iojs)" "${BEAMER_LS_CURRENT_NODE_PATH}"; then
     beamer_add_iojs_prefix "$(iojs --version 2>/dev/null)"
-  elif beamer_tree_contains_path "${NVM_DIR}" "${NVM_LS_CURRENT_NODE_PATH}"; then
+  elif beamer_tree_contains_path "${BEAMER_DIR}" "${BEAMER_LS_CURRENT_NODE_PATH}"; then
     local VERSION
     VERSION="$(node --version 2>/dev/null)"
     if [ "${VERSION}" = "v0.6.21-pre" ]; then
@@ -1298,10 +1298,10 @@ beamer_resolve_alias() {
 
   local SEEN_ALIASES
   SEEN_ALIASES="${ALIAS}"
-  local NVM_ALIAS_INDEX
-  NVM_ALIAS_INDEX=1
+  local BEAMER_ALIAS_INDEX
+  BEAMER_ALIAS_INDEX=1
   while true; do
-    ALIAS_TEMP="$( (beamer_alias "${ALIAS}" 2>/dev/null | command head -n "${NVM_ALIAS_INDEX}" | command tail -n 1) || beamer_echo)"
+    ALIAS_TEMP="$( (beamer_alias "${ALIAS}" 2>/dev/null | command head -n "${BEAMER_ALIAS_INDEX}" | command tail -n 1) || beamer_echo)"
 
     if [ -z "${ALIAS_TEMP}" ]; then
       break
@@ -1317,14 +1317,14 @@ beamer_resolve_alias() {
   done
 
   if [ -n "${ALIAS}" ] && [ "_${ALIAS}" != "_${PATTERN}" ]; then
-    local NVM_IOJS_PREFIX
-    NVM_IOJS_PREFIX="$(beamer_iojs_prefix)"
-    local NVM_NODE_PREFIX
-    NVM_NODE_PREFIX="$(beamer_node_prefix)"
+    local BEAMER_IOJS_PREFIX
+    BEAMER_IOJS_PREFIX="$(beamer_iojs_prefix)"
+    local BEAMER_NODE_PREFIX
+    BEAMER_NODE_PREFIX="$(beamer_node_prefix)"
     case "${ALIAS}" in
       '∞' | \
-      "${NVM_IOJS_PREFIX}" | "${NVM_IOJS_PREFIX}-" | \
-      "${NVM_NODE_PREFIX}")
+      "${BEAMER_IOJS_PREFIX}" | "${BEAMER_IOJS_PREFIX}-" | \
+      "${BEAMER_NODE_PREFIX}")
         beamer_echo "${ALIAS}"
       ;;
       *)
@@ -1381,12 +1381,12 @@ beamer_add_iojs_prefix() {
 }
 
 beamer_strip_iojs_prefix() {
-  local NVM_IOJS_PREFIX
-  NVM_IOJS_PREFIX="$(beamer_iojs_prefix)"
-  if [ "${1-}" = "${NVM_IOJS_PREFIX}" ]; then
+  local BEAMER_IOJS_PREFIX
+  BEAMER_IOJS_PREFIX="$(beamer_iojs_prefix)"
+  if [ "${1-}" = "${BEAMER_IOJS_PREFIX}" ]; then
     beamer_echo
   else
-    beamer_echo "${1#"${NVM_IOJS_PREFIX}"-}"
+    beamer_echo "${1#"${BEAMER_IOJS_PREFIX}"-}"
   fi
 }
 
@@ -1400,19 +1400,19 @@ beamer_ls() {
     return
   fi
 
-  local NVM_IOJS_PREFIX
-  NVM_IOJS_PREFIX="$(beamer_iojs_prefix)"
-  local NVM_NODE_PREFIX
-  NVM_NODE_PREFIX="$(beamer_node_prefix)"
-  local NVM_VERSION_DIR_IOJS
-  NVM_VERSION_DIR_IOJS="$(beamer_version_dir "${NVM_IOJS_PREFIX}")"
-  local NVM_VERSION_DIR_NEW
-  NVM_VERSION_DIR_NEW="$(beamer_version_dir new)"
-  local NVM_VERSION_DIR_OLD
-  NVM_VERSION_DIR_OLD="$(beamer_version_dir old)"
+  local BEAMER_IOJS_PREFIX
+  BEAMER_IOJS_PREFIX="$(beamer_iojs_prefix)"
+  local BEAMER_NODE_PREFIX
+  BEAMER_NODE_PREFIX="$(beamer_node_prefix)"
+  local BEAMER_VERSION_DIR_IOJS
+  BEAMER_VERSION_DIR_IOJS="$(beamer_version_dir "${BEAMER_IOJS_PREFIX}")"
+  local BEAMER_VERSION_DIR_NEW
+  BEAMER_VERSION_DIR_NEW="$(beamer_version_dir new)"
+  local BEAMER_VERSION_DIR_OLD
+  BEAMER_VERSION_DIR_OLD="$(beamer_version_dir old)"
 
   case "${PATTERN}" in
-    "${NVM_IOJS_PREFIX}" | "${NVM_NODE_PREFIX}")
+    "${BEAMER_IOJS_PREFIX}" | "${BEAMER_NODE_PREFIX}")
       PATTERN="${PATTERN}-"
     ;;
     *)
@@ -1426,12 +1426,12 @@ beamer_ls() {
     return
   fi
   # If it looks like an explicit version, don't do anything funny
-  local NVM_PATTERN_STARTS_WITH_V
+  local BEAMER_PATTERN_STARTS_WITH_V
   case $PATTERN in
-    v*) NVM_PATTERN_STARTS_WITH_V=true ;;
-    *) NVM_PATTERN_STARTS_WITH_V=false ;;
+    v*) BEAMER_PATTERN_STARTS_WITH_V=true ;;
+    *) BEAMER_PATTERN_STARTS_WITH_V=false ;;
   esac
-  if [ $NVM_PATTERN_STARTS_WITH_V = true ] && [ "_$(beamer_num_version_groups "${PATTERN}")" = "_3" ]; then
+  if [ $BEAMER_PATTERN_STARTS_WITH_V = true ] && [ "_$(beamer_num_version_groups "${PATTERN}")" = "_3" ]; then
     if beamer_is_version_installed "${PATTERN}"; then
       VERSIONS="${PATTERN}"
     elif beamer_is_version_installed "$(beamer_add_iojs_prefix "${PATTERN}")"; then
@@ -1439,7 +1439,7 @@ beamer_ls() {
     fi
   else
     case "${PATTERN}" in
-      "${NVM_IOJS_PREFIX}-" | "${NVM_NODE_PREFIX}-" | "system") ;;
+      "${BEAMER_IOJS_PREFIX}-" | "${BEAMER_NODE_PREFIX}-" | "system") ;;
       *)
         local NUM_VERSION_GROUPS
         NUM_VERSION_GROUPS="$(beamer_num_version_groups "${PATTERN}")"
@@ -1452,44 +1452,44 @@ beamer_ls() {
     beamer_is_zsh && setopt local_options shwordsplit
     beamer_is_zsh && unsetopt local_options markdirs
 
-    local NVM_DIRS_TO_SEARCH1
-    NVM_DIRS_TO_SEARCH1=''
-    local NVM_DIRS_TO_SEARCH2
-    NVM_DIRS_TO_SEARCH2=''
-    local NVM_DIRS_TO_SEARCH3
-    NVM_DIRS_TO_SEARCH3=''
-    local NVM_ADD_SYSTEM
-    NVM_ADD_SYSTEM=false
+    local BEAMER_DIRS_TO_SEARCH1
+    BEAMER_DIRS_TO_SEARCH1=''
+    local BEAMER_DIRS_TO_SEARCH2
+    BEAMER_DIRS_TO_SEARCH2=''
+    local BEAMER_DIRS_TO_SEARCH3
+    BEAMER_DIRS_TO_SEARCH3=''
+    local BEAMER_ADD_SYSTEM
+    BEAMER_ADD_SYSTEM=false
     if beamer_is_iojs_version "${PATTERN}"; then
-      NVM_DIRS_TO_SEARCH1="${NVM_VERSION_DIR_IOJS}"
+      BEAMER_DIRS_TO_SEARCH1="${BEAMER_VERSION_DIR_IOJS}"
       PATTERN="$(beamer_strip_iojs_prefix "${PATTERN}")"
       if beamer_has_system_iojs; then
-        NVM_ADD_SYSTEM=true
+        BEAMER_ADD_SYSTEM=true
       fi
-    elif [ "${PATTERN}" = "${NVM_NODE_PREFIX}-" ]; then
-      NVM_DIRS_TO_SEARCH1="${NVM_VERSION_DIR_OLD}"
-      NVM_DIRS_TO_SEARCH2="${NVM_VERSION_DIR_NEW}"
+    elif [ "${PATTERN}" = "${BEAMER_NODE_PREFIX}-" ]; then
+      BEAMER_DIRS_TO_SEARCH1="${BEAMER_VERSION_DIR_OLD}"
+      BEAMER_DIRS_TO_SEARCH2="${BEAMER_VERSION_DIR_NEW}"
       PATTERN=''
       if beamer_has_system_node; then
-        NVM_ADD_SYSTEM=true
+        BEAMER_ADD_SYSTEM=true
       fi
     else
-      NVM_DIRS_TO_SEARCH1="${NVM_VERSION_DIR_OLD}"
-      NVM_DIRS_TO_SEARCH2="${NVM_VERSION_DIR_NEW}"
-      NVM_DIRS_TO_SEARCH3="${NVM_VERSION_DIR_IOJS}"
+      BEAMER_DIRS_TO_SEARCH1="${BEAMER_VERSION_DIR_OLD}"
+      BEAMER_DIRS_TO_SEARCH2="${BEAMER_VERSION_DIR_NEW}"
+      BEAMER_DIRS_TO_SEARCH3="${BEAMER_VERSION_DIR_IOJS}"
       if beamer_has_system_iojs || beamer_has_system_node; then
-        NVM_ADD_SYSTEM=true
+        BEAMER_ADD_SYSTEM=true
       fi
     fi
 
-    if ! [ -d "${NVM_DIRS_TO_SEARCH1}" ] || ! (command ls -1qA "${NVM_DIRS_TO_SEARCH1}" | beamer_grep -q .); then
-      NVM_DIRS_TO_SEARCH1=''
+    if ! [ -d "${BEAMER_DIRS_TO_SEARCH1}" ] || ! (command ls -1qA "${BEAMER_DIRS_TO_SEARCH1}" | beamer_grep -q .); then
+      BEAMER_DIRS_TO_SEARCH1=''
     fi
-    if ! [ -d "${NVM_DIRS_TO_SEARCH2}" ] || ! (command ls -1qA "${NVM_DIRS_TO_SEARCH2}" | beamer_grep -q .); then
-      NVM_DIRS_TO_SEARCH2="${NVM_DIRS_TO_SEARCH1}"
+    if ! [ -d "${BEAMER_DIRS_TO_SEARCH2}" ] || ! (command ls -1qA "${BEAMER_DIRS_TO_SEARCH2}" | beamer_grep -q .); then
+      BEAMER_DIRS_TO_SEARCH2="${BEAMER_DIRS_TO_SEARCH1}"
     fi
-    if ! [ -d "${NVM_DIRS_TO_SEARCH3}" ] || ! (command ls -1qA "${NVM_DIRS_TO_SEARCH3}" | beamer_grep -q .); then
-      NVM_DIRS_TO_SEARCH3="${NVM_DIRS_TO_SEARCH2}"
+    if ! [ -d "${BEAMER_DIRS_TO_SEARCH3}" ] || ! (command ls -1qA "${BEAMER_DIRS_TO_SEARCH3}" | beamer_grep -q .); then
+      BEAMER_DIRS_TO_SEARCH3="${BEAMER_DIRS_TO_SEARCH2}"
     fi
 
     local SEARCH_PATTERN
@@ -1499,26 +1499,26 @@ beamer_ls() {
     else
       SEARCH_PATTERN="$(beamer_echo "${PATTERN}" | command sed 's#\.#\\\.#g;')"
     fi
-    if [ -n "${NVM_DIRS_TO_SEARCH1}${NVM_DIRS_TO_SEARCH2}${NVM_DIRS_TO_SEARCH3}" ]; then
-      VERSIONS="$(command find "${NVM_DIRS_TO_SEARCH1}"/* "${NVM_DIRS_TO_SEARCH2}"/* "${NVM_DIRS_TO_SEARCH3}"/* -name . -o -type d -prune -o -path "${PATTERN}*" \
+    if [ -n "${BEAMER_DIRS_TO_SEARCH1}${BEAMER_DIRS_TO_SEARCH2}${BEAMER_DIRS_TO_SEARCH3}" ]; then
+      VERSIONS="$(command find "${BEAMER_DIRS_TO_SEARCH1}"/* "${BEAMER_DIRS_TO_SEARCH2}"/* "${BEAMER_DIRS_TO_SEARCH3}"/* -name . -o -type d -prune -o -path "${PATTERN}*" \
         | command sed -e "
-            s#${NVM_VERSION_DIR_IOJS}/#versions/${NVM_IOJS_PREFIX}/#;
-            s#^${NVM_DIR}/##;
+            s#${BEAMER_VERSION_DIR_IOJS}/#versions/${BEAMER_IOJS_PREFIX}/#;
+            s#^${BEAMER_DIR}/##;
             \\#^[^v]# d;
             \\#^versions\$# d;
             s#^versions/##;
-            s#^v#${NVM_NODE_PREFIX}/v#;
+            s#^v#${BEAMER_NODE_PREFIX}/v#;
             \\#${SEARCH_PATTERN}# !d;
           " \
           -e 's#^\([^/]\{1,\}\)/\(.*\)$#\2.\1#;' \
         | command sort -t. -u -k 1.2,1n -k 2,2n -k 3,3n \
         | command sed -e 's#\(.*\)\.\([^\.]\{1,\}\)$#\2-\1#;' \
-                      -e "s#^${NVM_NODE_PREFIX}-##;" \
+                      -e "s#^${BEAMER_NODE_PREFIX}-##;" \
       )"
     fi
   fi
 
-  if [ "${NVM_ADD_SYSTEM-}" = true ]; then
+  if [ "${BEAMER_ADD_SYSTEM-}" = true ]; then
     if [ -z "${PATTERN}" ] || [ "${PATTERN}" = 'v' ]; then
       VERSIONS="${VERSIONS}
 system"
@@ -1545,23 +1545,23 @@ beamer_ls_remote() {
       beamer_echo "N/A"
       return 3
     fi
-    PATTERN="$(NVM_LTS="${NVM_LTS-}" beamer_ls_remote "${IMPLICIT}" | command tail -1 | command awk '{ print $1 }')"
+    PATTERN="$(BEAMER_LTS="${BEAMER_LTS-}" beamer_ls_remote "${IMPLICIT}" | command tail -1 | command awk '{ print $1 }')"
   elif [ -n "${PATTERN}" ]; then
     PATTERN="$(beamer_ensure_version_prefix "${PATTERN}")"
   else
     PATTERN=".*"
   fi
-  NVM_LTS="${NVM_LTS-}" beamer_ls_remote_index_tab node std "${PATTERN}"
+  BEAMER_LTS="${BEAMER_LTS-}" beamer_ls_remote_index_tab node std "${PATTERN}"
 }
 
 beamer_ls_remote_iojs() {
-  NVM_LTS="${NVM_LTS-}" beamer_ls_remote_index_tab iojs std "${1-}"
+  BEAMER_LTS="${BEAMER_LTS-}" beamer_ls_remote_index_tab iojs std "${1-}"
 }
 
 # args flavor, type, version
 beamer_ls_remote_index_tab() {
   local LTS
-  LTS="${NVM_LTS-}"
+  LTS="${BEAMER_LTS-}"
   if [ "$#" -lt 3 ]; then
     beamer_err 'not enough arguments'
     return 5
@@ -1708,9 +1708,9 @@ beamer_get_checksum_binary() {
 }
 
 beamer_get_checksum_alg() {
-  local NVM_CHECKSUM_BIN
-  NVM_CHECKSUM_BIN="$(beamer_get_checksum_binary 2>/dev/null)"
-  case "${NVM_CHECKSUM_BIN-}" in
+  local BEAMER_CHECKSUM_BIN
+  BEAMER_CHECKSUM_BIN="$(beamer_get_checksum_binary 2>/dev/null)"
+  case "${BEAMER_CHECKSUM_BIN-}" in
     sha256sum | shasum | sha256 | gsha256sum | openssl | bssl)
       beamer_echo 'sha-256'
     ;;
@@ -1822,8 +1822,8 @@ beamer_get_checksum() {
 }
 
 beamer_print_versions() {
-  local NVM_CURRENT
-  NVM_CURRENT=$(beamer_ls_current)
+  local BEAMER_CURRENT
+  BEAMER_CURRENT=$(beamer_ls_current)
 
   local INSTALLED_COLOR
   local SYSTEM_COLOR
@@ -1831,8 +1831,8 @@ beamer_print_versions() {
   local NOT_INSTALLED_COLOR
   local DEFAULT_COLOR
   local LTS_COLOR
-  local NVM_HAS_COLORS
-  NVM_HAS_COLORS=0
+  local BEAMER_HAS_COLORS
+  BEAMER_HAS_COLORS=0
 
   INSTALLED_COLOR=$(beamer_get_colors 1)
   SYSTEM_COLOR=$(beamer_get_colors 2)
@@ -1842,15 +1842,15 @@ beamer_print_versions() {
   LTS_COLOR=$(beamer_get_colors 6)
 
   if beamer_has_colors; then
-    NVM_HAS_COLORS=1
+    BEAMER_HAS_COLORS=1
   fi
 
   command awk \
     -v remote_versions="$(printf '%s' "${1-}" | tr '\n' '|')" \
-    -v installed_versions="$(beamer_ls | tr '\n' '|')" -v current="$NVM_CURRENT" \
+    -v installed_versions="$(beamer_ls | tr '\n' '|')" -v current="$BEAMER_CURRENT" \
     -v installed_color="$INSTALLED_COLOR" -v system_color="$SYSTEM_COLOR" \
     -v current_color="$CURRENT_COLOR" -v default_color="$DEFAULT_COLOR" \
-    -v old_lts_color="$DEFAULT_COLOR" -v has_colors="$NVM_HAS_COLORS" '
+    -v old_lts_color="$DEFAULT_COLOR" -v has_colors="$BEAMER_HAS_COLORS" '
 function alen(arr, i, len) { len=0; for(i in arr) len++; return len; }
 BEGIN {
   fmt_installed = has_colors ? (installed_color ? "\033[" installed_color "%15s\033[0m" : "%15s") : "%15s *";
@@ -1911,17 +1911,17 @@ BEGIN {
 }
 
 beamer_validate_implicit_alias() {
-  local NVM_IOJS_PREFIX
-  NVM_IOJS_PREFIX="$(beamer_iojs_prefix)"
-  local NVM_NODE_PREFIX
-  NVM_NODE_PREFIX="$(beamer_node_prefix)"
+  local BEAMER_IOJS_PREFIX
+  BEAMER_IOJS_PREFIX="$(beamer_iojs_prefix)"
+  local BEAMER_NODE_PREFIX
+  BEAMER_NODE_PREFIX="$(beamer_node_prefix)"
 
   case "$1" in
-    "stable" | "unstable" | "${NVM_IOJS_PREFIX}" | "${NVM_NODE_PREFIX}")
+    "stable" | "unstable" | "${BEAMER_IOJS_PREFIX}" | "${BEAMER_NODE_PREFIX}")
       return
     ;;
     *)
-      beamer_err "Only implicit aliases 'stable', 'unstable', '${NVM_IOJS_PREFIX}', and '${NVM_NODE_PREFIX}' are supported."
+      beamer_err "Only implicit aliases 'stable', 'unstable', '${BEAMER_IOJS_PREFIX}', and '${BEAMER_NODE_PREFIX}' are supported."
       return 1
     ;;
   esac
@@ -1933,57 +1933,57 @@ beamer_print_implicit_alias() {
     return 1
   fi
 
-  local NVM_IMPLICIT
-  NVM_IMPLICIT="$2"
-  if ! beamer_validate_implicit_alias "${NVM_IMPLICIT}"; then
+  local BEAMER_IMPLICIT
+  BEAMER_IMPLICIT="$2"
+  if ! beamer_validate_implicit_alias "${BEAMER_IMPLICIT}"; then
     return 2
   fi
 
-  local NVM_IOJS_PREFIX
-  NVM_IOJS_PREFIX="$(beamer_iojs_prefix)"
-  local NVM_NODE_PREFIX
-  NVM_NODE_PREFIX="$(beamer_node_prefix)"
-  local NVM_COMMAND
-  local NVM_ADD_PREFIX_COMMAND
+  local BEAMER_IOJS_PREFIX
+  BEAMER_IOJS_PREFIX="$(beamer_iojs_prefix)"
+  local BEAMER_NODE_PREFIX
+  BEAMER_NODE_PREFIX="$(beamer_node_prefix)"
+  local BEAMER_COMMAND
+  local BEAMER_ADD_PREFIX_COMMAND
   local LAST_TWO
-  case "${NVM_IMPLICIT}" in
-    "${NVM_IOJS_PREFIX}")
-      NVM_COMMAND="beamer_ls_remote_iojs"
-      NVM_ADD_PREFIX_COMMAND="beamer_add_iojs_prefix"
+  case "${BEAMER_IMPLICIT}" in
+    "${BEAMER_IOJS_PREFIX}")
+      BEAMER_COMMAND="beamer_ls_remote_iojs"
+      BEAMER_ADD_PREFIX_COMMAND="beamer_add_iojs_prefix"
       if [ "_$1" = "_local" ]; then
-        NVM_COMMAND="beamer_ls ${NVM_IMPLICIT}"
+        BEAMER_COMMAND="beamer_ls ${BEAMER_IMPLICIT}"
       fi
 
       beamer_is_zsh && setopt local_options shwordsplit
 
-      local NVM_IOJS_VERSION
+      local BEAMER_IOJS_VERSION
       local EXIT_CODE
-      NVM_IOJS_VERSION="$(${NVM_COMMAND})" &&:
+      BEAMER_IOJS_VERSION="$(${BEAMER_COMMAND})" &&:
       EXIT_CODE="$?"
       if [ "_${EXIT_CODE}" = "_0" ]; then
-        NVM_IOJS_VERSION="$(beamer_echo "${NVM_IOJS_VERSION}" | command sed "s/^${NVM_IMPLICIT}-//" | beamer_grep -e '^v' | command cut -c2- | command cut -d . -f 1,2 | uniq | command tail -1)"
+        BEAMER_IOJS_VERSION="$(beamer_echo "${BEAMER_IOJS_VERSION}" | command sed "s/^${BEAMER_IMPLICIT}-//" | beamer_grep -e '^v' | command cut -c2- | command cut -d . -f 1,2 | uniq | command tail -1)"
       fi
 
-      if [ "_$NVM_IOJS_VERSION" = "_N/A" ]; then
+      if [ "_$BEAMER_IOJS_VERSION" = "_N/A" ]; then
         beamer_echo 'N/A'
       else
-        ${NVM_ADD_PREFIX_COMMAND} "${NVM_IOJS_VERSION}"
+        ${BEAMER_ADD_PREFIX_COMMAND} "${BEAMER_IOJS_VERSION}"
       fi
       return $EXIT_CODE
     ;;
-    "${NVM_NODE_PREFIX}")
+    "${BEAMER_NODE_PREFIX}")
       beamer_echo 'stable'
       return
     ;;
     *)
-      NVM_COMMAND="beamer_ls_remote"
+      BEAMER_COMMAND="beamer_ls_remote"
       if [ "_$1" = "_local" ]; then
-        NVM_COMMAND="beamer_ls node"
+        BEAMER_COMMAND="beamer_ls node"
       fi
 
       beamer_is_zsh && setopt local_options shwordsplit
 
-      LAST_TWO=$($NVM_COMMAND | beamer_grep -e '^v' | command cut -c2- | command cut -d . -f 1,2 | uniq)
+      LAST_TWO=$($BEAMER_COMMAND | beamer_grep -e '^v' | command cut -c2- | command cut -d . -f 1,2 | uniq)
     ;;
   esac
   local MINOR
@@ -2015,74 +2015,74 @@ beamer_print_implicit_alias() {
 }
 
 beamer_get_os() {
-  local NVM_UNAME
-  NVM_UNAME="$(command uname -a)"
-  local NVM_OS
-  case "${NVM_UNAME}" in
-    Linux\ *) NVM_OS=linux ;;
-    Darwin\ *) NVM_OS=darwin ;;
-    SunOS\ *) NVM_OS=sunos ;;
-    FreeBSD\ *) NVM_OS=freebsd ;;
-    OpenBSD\ *) NVM_OS=openbsd ;;
-    AIX\ *) NVM_OS=aix ;;
-    CYGWIN* | MSYS* | MINGW*) NVM_OS=win ;;
+  local BEAMER_UNAME
+  BEAMER_UNAME="$(command uname -a)"
+  local BEAMER_OS
+  case "${BEAMER_UNAME}" in
+    Linux\ *) BEAMER_OS=linux ;;
+    Darwin\ *) BEAMER_OS=darwin ;;
+    SunOS\ *) BEAMER_OS=sunos ;;
+    FreeBSD\ *) BEAMER_OS=freebsd ;;
+    OpenBSD\ *) BEAMER_OS=openbsd ;;
+    AIX\ *) BEAMER_OS=aix ;;
+    CYGWIN* | MSYS* | MINGW*) BEAMER_OS=win ;;
   esac
-  beamer_echo "${NVM_OS-}"
+  beamer_echo "${BEAMER_OS-}"
 }
 
 beamer_get_arch() {
   local HOST_ARCH
-  local NVM_OS
+  local BEAMER_OS
   local EXIT_CODE
   local LONG_BIT
 
-  NVM_OS="$(beamer_get_os)"
+  BEAMER_OS="$(beamer_get_os)"
   # If the OS is SunOS, first try to use pkgsrc to guess
   # the most appropriate arch. If it's not available, use
   # isainfo to get the instruction set supported by the
   # kernel.
-  if [ "_${NVM_OS}" = "_sunos" ]; then
+  if [ "_${BEAMER_OS}" = "_sunos" ]; then
     if HOST_ARCH=$(pkg_info -Q MACHINE_ARCH pkg_install); then
       HOST_ARCH=$(beamer_echo "${HOST_ARCH}" | command tail -1)
     else
       HOST_ARCH=$(isainfo -n)
     fi
-  elif [ "_${NVM_OS}" = "_aix" ]; then
+  elif [ "_${BEAMER_OS}" = "_aix" ]; then
     HOST_ARCH=ppc64
   else
     HOST_ARCH="$(command uname -m)"
     LONG_BIT="$(getconf LONG_BIT 2>/dev/null)"
   fi
 
-  local NVM_ARCH
+  local BEAMER_ARCH
   case "${HOST_ARCH}" in
-    x86_64 | amd64) NVM_ARCH="x64" ;;
-    i*86) NVM_ARCH="x86" ;;
-    aarch64 | armv8l) NVM_ARCH="arm64" ;;
-    *) NVM_ARCH="${HOST_ARCH}" ;;
+    x86_64 | amd64) BEAMER_ARCH="x64" ;;
+    i*86) BEAMER_ARCH="x86" ;;
+    aarch64 | armv8l) BEAMER_ARCH="arm64" ;;
+    *) BEAMER_ARCH="${HOST_ARCH}" ;;
   esac
 
   # If running inside a 32Bit docker container the kernel still is 64bit
   # change ARCH to 32bit if LONG_BIT is 32
-  if [ "_${LONG_BIT}" = "_32" ] && [ "${NVM_ARCH}" = "x64" ]; then
-    NVM_ARCH="x86"
+  if [ "_${LONG_BIT}" = "_32" ] && [ "${BEAMER_ARCH}" = "x64" ]; then
+    BEAMER_ARCH="x86"
   fi
 
   # If running a 64bit ARM kernel but a 32bit ARM userland,
   # change ARCH to 32bit ARM (armv7l) if /sbin/init is 32bit executable
   if [ "$(uname)" = "Linux" ] \
-    && [ "${NVM_ARCH}" = arm64 ] \
+    && [ "${BEAMER_ARCH}" = arm64 ] \
     && [ "$(command od -An -t x1 -j 4 -N 1 "/sbin/init" 2>/dev/null)" = ' 01' ]\
   ; then
-    NVM_ARCH=armv7l
+    BEAMER_ARCH=armv7l
     HOST_ARCH=armv7l
   fi
 
   if [ -f "/etc/alpine-release" ]; then
-    NVM_ARCH=x64-musl
+    BEAMER_ARCH=x64-musl
   fi
 
-  beamer_echo "${NVM_ARCH}"
+  beamer_echo "${BEAMER_ARCH}"
 }
 
 beamer_get_minor_version() {
@@ -2136,31 +2136,31 @@ beamer_is_merged_node_version() {
 }
 
 beamer_get_mirror() {
-  local NVM_MIRROR
-  NVM_MIRROR=''
+  local BEAMER_MIRROR
+  BEAMER_MIRROR=''
   case "${1}-${2}" in
-    node-std) NVM_MIRROR="${NVM_NODEJS_ORG_MIRROR:-https://nodejs.org/dist}" ;;
-    iojs-std) NVM_MIRROR="${NVM_IOJS_ORG_MIRROR:-https://iojs.org/dist}" ;;
+    node-std) BEAMER_MIRROR="${BEAMER_NODEJS_ORG_MIRROR:-https://nodejs.org/dist}" ;;
+    iojs-std) BEAMER_MIRROR="${BEAMER_IOJS_ORG_MIRROR:-https://iojs.org/dist}" ;;
     *)
       beamer_err 'unknown type of node.js or io.js release'
       return 1
     ;;
   esac
 
-  case "${NVM_MIRROR}" in
+  case "${BEAMER_MIRROR}" in
     *\`* | *\\* | *\'* | *\(* | *' '* )
-      beamer_err '$NVM_NODEJS_ORG_MIRROR and $NVM_IOJS_ORG_MIRROR may only contain a URL'
+      beamer_err '$BEAMER_NODEJS_ORG_MIRROR and $BEAMER_IOJS_ORG_MIRROR may only contain a URL'
       return 2
     ;;
   esac
 
 
-  if ! beamer_echo "${NVM_MIRROR}" | command awk '{ $0 ~ "^https?://[a-zA-Z0-9./_-]+$" }'; then
-      beamer_err '$NVM_NODEJS_ORG_MIRROR and $NVM_IOJS_ORG_MIRROR may only contain a URL'
+  if ! beamer_echo "${BEAMER_MIRROR}" | command awk '{ $0 ~ "^https?://[a-zA-Z0-9./_-]+$" }'; then
+      beamer_err '$BEAMER_NODEJS_ORG_MIRROR and $BEAMER_IOJS_ORG_MIRROR may only contain a URL'
       return 2
   fi
 
-  beamer_echo "${NVM_MIRROR}"
+  beamer_echo "${BEAMER_MIRROR}"
 }
 
 # args: os, prefixed version, version, tarball, extract directory
@@ -2170,12 +2170,12 @@ beamer_install_binary_extract() {
     return 1
   fi
 
-  local NVM_OS
+  local BEAMER_OS
   local PREFIXED_VERSION
   local VERSION
   local TARBALL
   local TMPDIR
-  NVM_OS="${1}"
+  BEAMER_OS="${1}"
   PREFIXED_VERSION="${2}"
   VERSION="${3}"
   TARBALL="${4}"
@@ -2188,17 +2188,17 @@ beamer_install_binary_extract() {
   VERSION_PATH="$(beamer_version_path "${PREFIXED_VERSION}")" || return 1
 
   # For Windows system (GitBash with MSYS, Cygwin)
-  if [ "${NVM_OS}" = 'win' ]; then
+  if [ "${BEAMER_OS}" = 'win' ]; then
     VERSION_PATH="${VERSION_PATH}/bin"
     command unzip -q "${TARBALL}" -d "${TMPDIR}" || return 1
   # For non Windows system (including WSL running on Windows)
   else
-    beamer_extract_tarball "${NVM_OS}" "${VERSION}" "${TARBALL}" "${TMPDIR}"
+    beamer_extract_tarball "${BEAMER_OS}" "${VERSION}" "${TARBALL}" "${TMPDIR}"
   fi
 
   command mkdir -p "${VERSION_PATH}" || return 1
 
-  if [ "${NVM_OS}" = 'win' ]; then
+  if [ "${BEAMER_OS}" = 'win' ]; then
     command mv "${TMPDIR}/"*/* "${VERSION_PATH}/" || return 1
     command chmod +x "${VERSION_PATH}"/node.exe || return 1
     command chmod +x "${VERSION_PATH}"/npm || return 1
@@ -2239,10 +2239,10 @@ beamer_install_binary() {
   local VERSION
   VERSION="$(beamer_strip_iojs_prefix "${PREFIXED_VERSION}")"
 
-  local NVM_OS
-  NVM_OS="$(beamer_get_os)"
+  local BEAMER_OS
+  BEAMER_OS="$(beamer_get_os)"
 
-  if [ -z "${NVM_OS}" ]; then
+  if [ -z "${BEAMER_OS}" ]; then
     return 2
   fi
 
@@ -2256,7 +2256,7 @@ beamer_install_binary() {
   elif [ "${FLAVOR}" = 'iojs' ]; then
     NODE_OR_IOJS="io.js"
   fi
-  if [ "${NVM_NO_PROGRESS-}" = "1" ]; then
+  if [ "${BEAMER_NO_PROGRESS-}" = "1" ]; then
     # --silent, --show-error, use short option as @samrocketman mentions the compatibility issue.
     PROGRESS_BAR="-sS"
   else
@@ -2268,7 +2268,7 @@ beamer_install_binary() {
     TMPDIR="$(dirname "${TARBALL}")/files"
   fi
 
-  if beamer_install_binary_extract "${NVM_OS}" "${PREFIXED_VERSION}" "${VERSION}" "${TARBALL}" "${TMPDIR}"; then
+  if beamer_install_binary_extract "${BEAMER_OS}" "${PREFIXED_VERSION}" "${VERSION}" "${TARBALL}" "${TMPDIR}"; then
     if [ -n "${ALIAS-}" ]; then
       beamer alias "${ALIAS}" "${provided_version}"
     fi
@@ -2312,14 +2312,14 @@ beamer_get_download_slug() {
   local VERSION
   VERSION="${3-}"
 
-  local NVM_OS
-  NVM_OS="$(beamer_get_os)"
+  local BEAMER_OS
+  BEAMER_OS="$(beamer_get_os)"
 
-  local NVM_ARCH
-  NVM_ARCH="$(beamer_get_arch)"
+  local BEAMER_ARCH
+  BEAMER_ARCH="$(beamer_get_arch)"
   if ! beamer_is_merged_node_version "${VERSION}"; then
-    if [ "${NVM_ARCH}" = 'armv6l' ] || [ "${NVM_ARCH}" = 'armv7l' ]; then
-      NVM_ARCH="arm-pi"
+    if [ "${BEAMER_ARCH}" = 'armv6l' ] || [ "${BEAMER_ARCH}" = 'armv7l' ]; then
+      BEAMER_ARCH="arm-pi"
     fi
   fi
 
@@ -2329,13 +2329,13 @@ beamer_get_download_slug() {
     beamer_version_greater '14.17.0' "${VERSION}" \
     || (beamer_version_greater_than_or_equal_to "${VERSION}" '15.0.0' && beamer_version_greater '16.0.0' "${VERSION}") \
   ; then
-    if [ "_${NVM_OS}" = '_darwin' ] && [ "${NVM_ARCH}" = 'arm64' ]; then
-      NVM_ARCH=x64
+    if [ "_${BEAMER_OS}" = '_darwin' ] && [ "${BEAMER_ARCH}" = 'arm64' ]; then
+      BEAMER_ARCH=x64
     fi
   fi
 
   if [ "${KIND}" = 'binary' ]; then
-    beamer_echo "${FLAVOR}-${VERSION}-${NVM_OS}-${NVM_ARCH}"
+    beamer_echo "${FLAVOR}-${VERSION}-${BEAMER_OS}-${BEAMER_ARCH}"
   elif [ "${KIND}" = 'source' ]; then
     beamer_echo "${FLAVOR}-${VERSION}"
   fi
@@ -2345,12 +2345,12 @@ beamer_get_artifact_compression() {
   local VERSION
   VERSION="${1-}"
 
-  local NVM_OS
-  NVM_OS="$(beamer_get_os)"
+  local BEAMER_OS
+  BEAMER_OS="$(beamer_get_os)"
 
   local COMPRESSION
   COMPRESSION='tar.gz'
-  if [ "_${NVM_OS}" = '_win' ]; then
+  if [ "_${BEAMER_OS}" = '_win' ]; then
     COMPRESSION='zip'
   elif beamer_supports_xz "${VERSION}"; then
     COMPRESSION='tar.xz'
@@ -2471,8 +2471,8 @@ beamer_extract_tarball() {
     return 5
   fi
 
-  local NVM_OS
-  NVM_OS="${1-}"
+  local BEAMER_OS
+  BEAMER_OS="${1-}"
 
   local VERSION
   VERSION="${2-}"
@@ -2491,11 +2491,11 @@ beamer_extract_tarball() {
 
   local tar
   tar='tar'
-  if [ "${NVM_OS}" = 'aix' ]; then
+  if [ "${BEAMER_OS}" = 'aix' ]; then
     tar='gtar'
   fi
 
-  if [ "${NVM_OS}" = 'openbsd' ]; then
+  if [ "${BEAMER_OS}" = 'openbsd' ]; then
     if [ "${tar_compression_flag}" = 'J' ]; then
       command xzcat "${TARBALL}" | "${tar}" -xf - -C "${TMPDIR}" -s '/[^\/]*\///' || return 1
     else
@@ -2508,41 +2508,41 @@ beamer_extract_tarball() {
 
 beamer_get_make_jobs() {
   if beamer_is_natural_num "${1-}"; then
-    NVM_MAKE_JOBS="$1"
-    beamer_echo "number of \`make\` jobs: ${NVM_MAKE_JOBS}"
+    BEAMER_MAKE_JOBS="$1"
+    beamer_echo "number of \`make\` jobs: ${BEAMER_MAKE_JOBS}"
     return
   elif [ -n "${1-}" ]; then
-    unset NVM_MAKE_JOBS
+    unset BEAMER_MAKE_JOBS
     beamer_err "$1 is invalid for number of \`make\` jobs, must be a natural number"
   fi
-  local NVM_OS
-  NVM_OS="$(beamer_get_os)"
-  local NVM_CPU_CORES
-  case "_${NVM_OS}" in
+  local BEAMER_OS
+  BEAMER_OS="$(beamer_get_os)"
+  local BEAMER_CPU_CORES
+  case "_${BEAMER_OS}" in
     "_linux")
-      NVM_CPU_CORES="$(beamer_grep -c -E '^processor.+: [0-9]+' /proc/cpuinfo)"
+      BEAMER_CPU_CORES="$(beamer_grep -c -E '^processor.+: [0-9]+' /proc/cpuinfo)"
     ;;
     "_freebsd" | "_darwin" | "_openbsd")
-      NVM_CPU_CORES="$(sysctl -n hw.ncpu)"
+      BEAMER_CPU_CORES="$(sysctl -n hw.ncpu)"
     ;;
     "_sunos")
-      NVM_CPU_CORES="$(psrinfo | wc -l)"
+      BEAMER_CPU_CORES="$(psrinfo | wc -l)"
     ;;
     "_aix")
-      NVM_CPU_CORES="$(pmcycles -m | wc -l)"
+      BEAMER_CPU_CORES="$(pmcycles -m | wc -l)"
     ;;
   esac
-  if ! beamer_is_natural_num "${NVM_CPU_CORES}"; then
+  if ! beamer_is_natural_num "${BEAMER_CPU_CORES}"; then
     beamer_err 'Can not determine how many core(s) are available, running in single-threaded mode.'
     beamer_err 'Please report an issue on GitHub to help us make beamer run faster on your computer!'
-    NVM_MAKE_JOBS=1
+    BEAMER_MAKE_JOBS=1
   else
-    beamer_echo "Detected that you have ${NVM_CPU_CORES} CPU core(s)"
-    if [ "${NVM_CPU_CORES}" -gt 2 ]; then
-      NVM_MAKE_JOBS=$((NVM_CPU_CORES - 1))
-      beamer_echo "Running with ${NVM_MAKE_JOBS} threads to speed up the build"
+    beamer_echo "Detected that you have ${BEAMER_CPU_CORES} CPU core(s)"
+    if [ "${BEAMER_CPU_CORES}" -gt 2 ]; then
+      BEAMER_MAKE_JOBS=$((BEAMER_CPU_CORES - 1))
+      beamer_echo "Running with ${BEAMER_MAKE_JOBS} threads to speed up the build"
     else
-      NVM_MAKE_JOBS=1
+      BEAMER_MAKE_JOBS=1
       beamer_echo 'Number of CPU core(s) less than or equal to 2, running in single-threaded mode'
     fi
   fi
@@ -2572,15 +2572,15 @@ beamer_install_source() {
   local VERSION
   VERSION="$(beamer_strip_iojs_prefix "${PREFIXED_VERSION}")"
 
-  local NVM_MAKE_JOBS
-  NVM_MAKE_JOBS="${4-}"
+  local BEAMER_MAKE_JOBS
+  BEAMER_MAKE_JOBS="${4-}"
 
   local ADDITIONAL_PARAMETERS
   ADDITIONAL_PARAMETERS="${5-}"
 
-  local NVM_ARCH
-  NVM_ARCH="$(beamer_get_arch)"
-  if [ "${NVM_ARCH}" = 'armv6l' ] || [ "${NVM_ARCH}" = 'armv7l' ]; then
+  local BEAMER_ARCH
+  BEAMER_ARCH="$(beamer_get_arch)"
+  if [ "${BEAMER_ARCH}" = 'armv6l' ] || [ "${BEAMER_ARCH}" = 'armv7l' ]; then
     if [ -n "${ADDITIONAL_PARAMETERS}" ]; then
       ADDITIONAL_PARAMETERS="--without-snapshot ${ADDITIONAL_PARAMETERS}"
     else
@@ -2592,13 +2592,13 @@ beamer_install_source() {
     beamer_echo "Additional options while compiling: ${ADDITIONAL_PARAMETERS}"
   fi
 
-  local NVM_OS
-  NVM_OS="$(beamer_get_os)"
+  local BEAMER_OS
+  BEAMER_OS="$(beamer_get_os)"
 
   local make
   make='make'
   local MAKE_CXX
-  case "${NVM_OS}" in
+  case "${BEAMER_OS}" in
     'freebsd' | 'openbsd')
       make='gmake'
       MAKE_CXX="CC=${CC:-cc} CXX=${CXX:-c++}"
@@ -2621,7 +2621,7 @@ beamer_install_source() {
   local TMPDIR
   local VERSION_PATH
 
-  if [ "${NVM_NO_PROGRESS-}" = "1" ]; then
+  if [ "${BEAMER_NO_PROGRESS-}" = "1" ]; then
     # --silent, --show-error, use short option as @samrocketman mentions the compatibility issue.
     PROGRESS_BAR="-sS"
   else
@@ -2636,14 +2636,14 @@ beamer_install_source() {
   if ! (
     # shellcheck disable=SC2086
     command mkdir -p "${TMPDIR}" && \
-    beamer_extract_tarball "${NVM_OS}" "${VERSION}" "${TARBALL}" "${TMPDIR}" && \
+    beamer_extract_tarball "${BEAMER_OS}" "${VERSION}" "${TARBALL}" "${TMPDIR}" && \
     VERSION_PATH="$(beamer_version_path "${PREFIXED_VERSION}")" && \
     beamer_cd "${TMPDIR}" && \
     beamer_echo '$>'./configure --prefix="${VERSION_PATH}" $ADDITIONAL_PARAMETERS'<' && \
     ./configure --prefix="${VERSION_PATH}" $ADDITIONAL_PARAMETERS && \
-    $make -j "${NVM_MAKE_JOBS}" ${MAKE_CXX-} && \
+    $make -j "${BEAMER_MAKE_JOBS}" ${MAKE_CXX-} && \
     command rm -f "${VERSION_PATH}" 2>/dev/null && \
-    $make -j "${NVM_MAKE_JOBS}" ${MAKE_CXX-} install
+    $make -j "${BEAMER_MAKE_JOBS}" ${MAKE_CXX-} install
   ); then
     beamer_err "beamer: install ${VERSION} failed!"
     command rm -rf "${TMPDIR-}"
@@ -2679,13 +2679,13 @@ beamer_install_npm_if_needed() {
 }
 
 beamer_match_version() {
-  local NVM_IOJS_PREFIX
-  NVM_IOJS_PREFIX="$(beamer_iojs_prefix)"
+  local BEAMER_IOJS_PREFIX
+  BEAMER_IOJS_PREFIX="$(beamer_iojs_prefix)"
   local PROVIDED_VERSION
   PROVIDED_VERSION="$1"
   case "_${PROVIDED_VERSION}" in
-    "_${NVM_IOJS_PREFIX}" | '_io.js')
-      beamer_version "${NVM_IOJS_PREFIX}"
+    "_${BEAMER_IOJS_PREFIX}" | '_io.js')
+      beamer_version "${BEAMER_IOJS_PREFIX}"
     ;;
     '_system')
       beamer_echo 'system'
@@ -2712,29 +2712,29 @@ beamer_npm_global_modules() {
 }
 
 beamer_npmrc_bad_news_bears() {
-  local NVM_NPMRC
-  NVM_NPMRC="${1-}"
-  if [ -n "${NVM_NPMRC}" ] && [ -f "${NVM_NPMRC}" ] && beamer_grep -Ee '^(prefix|globalconfig) *=' <"${NVM_NPMRC}" >/dev/null; then
+  local BEAMER_NPMRC
+  BEAMER_NPMRC="${1-}"
+  if [ -n "${BEAMER_NPMRC}" ] && [ -f "${BEAMER_NPMRC}" ] && beamer_grep -Ee '^(prefix|globalconfig) *=' <"${BEAMER_NPMRC}" >/dev/null; then
     return 0
   fi
   return 1
 }
 
 beamer_die_on_prefix() {
-  local NVM_DELETE_PREFIX
-  NVM_DELETE_PREFIX="${1-}"
-  case "${NVM_DELETE_PREFIX}" in
+  local BEAMER_DELETE_PREFIX
+  BEAMER_DELETE_PREFIX="${1-}"
+  case "${BEAMER_DELETE_PREFIX}" in
     0 | 1) ;;
     *)
       beamer_err 'First argument "delete the prefix" must be zero or one'
       return 1
     ;;
   esac
-  local NVM_COMMAND
-  NVM_COMMAND="${2-}"
-  local NVM_VERSION_DIR
-  NVM_VERSION_DIR="${3-}"
-  if [ -z "${NVM_COMMAND}" ] || [ -z "${NVM_VERSION_DIR}" ]; then
+  local BEAMER_COMMAND
+  BEAMER_COMMAND="${2-}"
+  local BEAMER_VERSION_DIR
+  BEAMER_VERSION_DIR="${3-}"
+  if [ -z "${BEAMER_COMMAND}" ] || [ -z "${BEAMER_VERSION_DIR}" ]; then
     beamer_err 'Second argument "beamer command", and third argument "beamer version dir", must both be nonempty'
     return 2
   fi
@@ -2749,8 +2749,8 @@ beamer_die_on_prefix() {
     return 3
   fi
 
-  local NVM_OS
-  NVM_OS="$(beamer_get_os)"
+  local BEAMER_OS
+  BEAMER_OS="$(beamer_get_os)"
 
   # npm normalizes NPM_CONFIG_-prefixed env vars
   # https://github.com/npm/npmconf/blob/22827e4038d6eebaafeb5c13ed2b92cf97b8fb82/npmconf.js#L331-L348
@@ -2758,18 +2758,18 @@ beamer_die_on_prefix() {
   #
   # here, we avoid trying to replicate "which one wins" or testing the value; if any are defined, it errors
   # until none are left.
-  local NVM_NPM_CONFIG_x_PREFIX_ENV
-  NVM_NPM_CONFIG_x_PREFIX_ENV="$(command awk 'BEGIN { for (name in ENVIRON) if (toupper(name) == "NPM_CONFIG_PREFIX") { print name; break } }')"
-  if [ -n "${NVM_NPM_CONFIG_x_PREFIX_ENV-}" ]; then
-    local NVM_CONFIG_VALUE
-    eval "NVM_CONFIG_VALUE=\"\$${NVM_NPM_CONFIG_x_PREFIX_ENV}\""
-    if [ -n "${NVM_CONFIG_VALUE-}" ] && [ "_${NVM_OS}" = "_win" ]; then
-      NVM_CONFIG_VALUE="$(cd "$NVM_CONFIG_VALUE" 2>/dev/null && pwd)"
+  local BEAMER_NPM_CONFIG_x_PREFIX_ENV
+  BEAMER_NPM_CONFIG_x_PREFIX_ENV="$(command awk 'BEGIN { for (name in ENVIRON) if (toupper(name) == "NPM_CONFIG_PREFIX") { print name; break } }')"
+  if [ -n "${BEAMER_NPM_CONFIG_x_PREFIX_ENV-}" ]; then
+    local BEAMER_CONFIG_VALUE
+    eval "BEAMER_CONFIG_VALUE=\"\$${BEAMER_NPM_CONFIG_x_PREFIX_ENV}\""
+    if [ -n "${BEAMER_CONFIG_VALUE-}" ] && [ "_${BEAMER_OS}" = "_win" ]; then
+      BEAMER_CONFIG_VALUE="$(cd "$BEAMER_CONFIG_VALUE" 2>/dev/null && pwd)"
     fi
-    if [ -n "${NVM_CONFIG_VALUE-}" ] && ! beamer_tree_contains_path "${NVM_DIR}" "${NVM_CONFIG_VALUE}"; then
+    if [ -n "${BEAMER_CONFIG_VALUE-}" ] && ! beamer_tree_contains_path "${BEAMER_DIR}" "${BEAMER_CONFIG_VALUE}"; then
       beamer deactivate >/dev/null 2>&1
-      beamer_err "beamer is not compatible with the \"${NVM_NPM_CONFIG_x_PREFIX_ENV}\" environment variable: currently set to \"${NVM_CONFIG_VALUE}\""
-      beamer_err "Run \`unset ${NVM_NPM_CONFIG_x_PREFIX_ENV}\` to unset it."
+      beamer_err "beamer is not compatible with the \"${BEAMER_NPM_CONFIG_x_PREFIX_ENV}\" environment variable: currently set to \"${BEAMER_CONFIG_VALUE}\""
+      beamer_err "Run \`unset ${BEAMER_NPM_CONFIG_x_PREFIX_ENV}\` to unset it."
       return 4
     fi
   fi
@@ -2786,58 +2786,58 @@ beamer_die_on_prefix() {
   # if any of them have a `prefix`, fail.
   # if any have `globalconfig`, fail also, just in case, to avoid spidering configs.
 
-  local NVM_NPM_BUILTIN_NPMRC
-  NVM_NPM_BUILTIN_NPMRC="${NVM_VERSION_DIR}/lib/node_modules/npm/npmrc"
-  if beamer_npmrc_bad_news_bears "${NVM_NPM_BUILTIN_NPMRC}"; then
-    if [ "_${NVM_DELETE_PREFIX}" = "_1" ]; then
-      npm config --loglevel=warn delete prefix --userconfig="${NVM_NPM_BUILTIN_NPMRC}"
-      npm config --loglevel=warn delete globalconfig --userconfig="${NVM_NPM_BUILTIN_NPMRC}"
+  local BEAMER_NPM_BUILTIN_NPMRC
+  BEAMER_NPM_BUILTIN_NPMRC="${BEAMER_VERSION_DIR}/lib/node_modules/npm/npmrc"
+  if beamer_npmrc_bad_news_bears "${BEAMER_NPM_BUILTIN_NPMRC}"; then
+    if [ "_${BEAMER_DELETE_PREFIX}" = "_1" ]; then
+      npm config --loglevel=warn delete prefix --userconfig="${BEAMER_NPM_BUILTIN_NPMRC}"
+      npm config --loglevel=warn delete globalconfig --userconfig="${BEAMER_NPM_BUILTIN_NPMRC}"
     else
-      beamer_err "Your builtin npmrc file ($(beamer_sanitize_path "${NVM_NPM_BUILTIN_NPMRC}"))"
+      beamer_err "Your builtin npmrc file ($(beamer_sanitize_path "${BEAMER_NPM_BUILTIN_NPMRC}"))"
       beamer_err 'has a `globalconfig` and/or a `prefix` setting, which are incompatible with beamer.'
-      beamer_err "Run \`${NVM_COMMAND}\` to unset it."
+      beamer_err "Run \`${BEAMER_COMMAND}\` to unset it."
       return 10
     fi
   fi
 
-  local NVM_NPM_GLOBAL_NPMRC
-  NVM_NPM_GLOBAL_NPMRC="${NVM_VERSION_DIR}/etc/npmrc"
-  if beamer_npmrc_bad_news_bears "${NVM_NPM_GLOBAL_NPMRC}"; then
-    if [ "_${NVM_DELETE_PREFIX}" = "_1" ]; then
+  local BEAMER_NPM_GLOBAL_NPMRC
+  BEAMER_NPM_GLOBAL_NPMRC="${BEAMER_VERSION_DIR}/etc/npmrc"
+  if beamer_npmrc_bad_news_bears "${BEAMER_NPM_GLOBAL_NPMRC}"; then
+    if [ "_${BEAMER_DELETE_PREFIX}" = "_1" ]; then
       npm config --global --loglevel=warn delete prefix
       npm config --global --loglevel=warn delete globalconfig
     else
-      beamer_err "Your global npmrc file ($(beamer_sanitize_path "${NVM_NPM_GLOBAL_NPMRC}"))"
+      beamer_err "Your global npmrc file ($(beamer_sanitize_path "${BEAMER_NPM_GLOBAL_NPMRC}"))"
       beamer_err 'has a `globalconfig` and/or a `prefix` setting, which are incompatible with beamer.'
-      beamer_err "Run \`${NVM_COMMAND}\` to unset it."
+      beamer_err "Run \`${BEAMER_COMMAND}\` to unset it."
       return 10
     fi
   fi
 
-  local NVM_NPM_USER_NPMRC
-  NVM_NPM_USER_NPMRC="${HOME}/.npmrc"
-  if beamer_npmrc_bad_news_bears "${NVM_NPM_USER_NPMRC}"; then
-    if [ "_${NVM_DELETE_PREFIX}" = "_1" ]; then
-      npm config --loglevel=warn delete prefix --userconfig="${NVM_NPM_USER_NPMRC}"
-      npm config --loglevel=warn delete globalconfig --userconfig="${NVM_NPM_USER_NPMRC}"
+  local BEAMER_NPM_USER_NPMRC
+  BEAMER_NPM_USER_NPMRC="${HOME}/.npmrc"
+  if beamer_npmrc_bad_news_bears "${BEAMER_NPM_USER_NPMRC}"; then
+    if [ "_${BEAMER_DELETE_PREFIX}" = "_1" ]; then
+      npm config --loglevel=warn delete prefix --userconfig="${BEAMER_NPM_USER_NPMRC}"
+      npm config --loglevel=warn delete globalconfig --userconfig="${BEAMER_NPM_USER_NPMRC}"
     else
-      beamer_err "Your user’s .npmrc file ($(beamer_sanitize_path "${NVM_NPM_USER_NPMRC}"))"
+      beamer_err "Your user’s .npmrc file ($(beamer_sanitize_path "${BEAMER_NPM_USER_NPMRC}"))"
       beamer_err 'has a `globalconfig` and/or a `prefix` setting, which are incompatible with beamer.'
-      beamer_err "Run \`${NVM_COMMAND}\` to unset it."
+      beamer_err "Run \`${BEAMER_COMMAND}\` to unset it."
       return 10
     fi
   fi
 
-  local NVM_NPM_PROJECT_NPMRC
-  NVM_NPM_PROJECT_NPMRC="$(beamer_find_project_dir)/.npmrc"
-  if beamer_npmrc_bad_news_bears "${NVM_NPM_PROJECT_NPMRC}"; then
-    if [ "_${NVM_DELETE_PREFIX}" = "_1" ]; then
+  local BEAMER_NPM_PROJECT_NPMRC
+  BEAMER_NPM_PROJECT_NPMRC="$(beamer_find_project_dir)/.npmrc"
+  if beamer_npmrc_bad_news_bears "${BEAMER_NPM_PROJECT_NPMRC}"; then
+    if [ "_${BEAMER_DELETE_PREFIX}" = "_1" ]; then
       npm config --loglevel=warn delete prefix
       npm config --loglevel=warn delete globalconfig
     else
-      beamer_err "Your project npmrc file ($(beamer_sanitize_path "${NVM_NPM_PROJECT_NPMRC}"))"
+      beamer_err "Your project npmrc file ($(beamer_sanitize_path "${BEAMER_NPM_PROJECT_NPMRC}"))"
       beamer_err 'has a `globalconfig` and/or a `prefix` setting, which are incompatible with beamer.'
-      beamer_err "Run \`${NVM_COMMAND}\` to unset it."
+      beamer_err "Run \`${BEAMER_COMMAND}\` to unset it."
       return 10
     fi
   fi
@@ -2898,8 +2898,8 @@ beamer_has_solaris_binary() {
 beamer_sanitize_path() {
   local SANITIZED_PATH
   SANITIZED_PATH="${1-}"
-  if [ "_${SANITIZED_PATH}" != "_${NVM_DIR}" ]; then
-    SANITIZED_PATH="$(beamer_echo "${SANITIZED_PATH}" | command sed -e "s#${NVM_DIR}#\${NVM_DIR}#g")"
+  if [ "_${SANITIZED_PATH}" != "_${BEAMER_DIR}" ]; then
+    SANITIZED_PATH="$(beamer_echo "${SANITIZED_PATH}" | command sed -e "s#${BEAMER_DIR}#\${BEAMER_DIR}#g")"
   fi
   if [ "_${SANITIZED_PATH}" != "_${HOME}" ]; then
     SANITIZED_PATH="$(beamer_echo "${SANITIZED_PATH}" | command sed -e "s#${HOME}#\${HOME}#g")"
@@ -2927,12 +2927,12 @@ beamer_write_beamerrc() {
     return 1
   fi
   echo "${VERSION_STRING}" | tee "$PWD"/.beamerrc > /dev/null || {
-    if [ "${NVM_SILENT:-0}" -ne 1 ]; then
+    if [ "${BEAMER_SILENT:-0}" -ne 1 ]; then
       beamer_err "Warning: Unable to write version number ($VERSION_STRING) to .beamerrc"
     fi
     return 3
   }
-  if [ "${NVM_SILENT:-0}" -ne 1 ]; then
+  if [ "${BEAMER_SILENT:-0}" -ne 1 ]; then
     beamer_echo "Wrote version number ($VERSION_STRING) to .beamerrc"
   fi
 }
@@ -2942,7 +2942,7 @@ beamer_check_file_permissions() {
   beamer_is_zsh && setopt local_options nonomatch
   for FILE in "$1"/* "$1"/.[!.]* "$1"/..?* ; do
     if [ -d "$FILE" ]; then
-      if [ -n "${NVM_DEBUG-}" ]; then
+      if [ -n "${BEAMER_DEBUG-}" ]; then
         beamer_err "${FILE}"
       fi
       if [ ! -L "${FILE}" ] && ! beamer_check_file_permissions "${FILE}"; then
@@ -2957,7 +2957,7 @@ beamer_check_file_permissions() {
 }
 
 beamer_cache_dir() {
-  beamer_echo "${NVM_DIR}/.cache"
+  beamer_echo "${BEAMER_DIR}/.cache"
 }
 
 beamer() {
@@ -3003,25 +3003,25 @@ beamer() {
     case $i in
       --) break ;;
       '-h'|'help'|'--help')
-        NVM_NO_COLORS=""
+        BEAMER_NO_COLORS=""
         for j in "$@"; do
           if [ "${j}" = '--no-colors' ]; then
-            NVM_NO_COLORS="${j}"
+            BEAMER_NO_COLORS="${j}"
             break
           fi
         done
 
-        local NVM_IOJS_PREFIX
-        NVM_IOJS_PREFIX="$(beamer_iojs_prefix)"
-        local NVM_NODE_PREFIX
-        NVM_NODE_PREFIX="$(beamer_node_prefix)"
-        NVM_VERSION="$(beamer --version)"
+        local BEAMER_IOJS_PREFIX
+        BEAMER_IOJS_PREFIX="$(beamer_iojs_prefix)"
+        local BEAMER_NODE_PREFIX
+        BEAMER_NODE_PREFIX="$(beamer_node_prefix)"
+        BEAMER_VERSION="$(beamer --version)"
         beamer_echo
-        beamer_echo "Node Version Manager (v${NVM_VERSION})"
+        beamer_echo "Node Version Manager (v${BEAMER_VERSION})"
         beamer_echo
         beamer_echo 'Note: <version> refers to any version-like string beamer understands. This includes:'
         beamer_echo '  - full or partial version numbers, starting with an optional "v" (0.10, v0.1.2, v1)'
-        beamer_echo "  - default (built-in) aliases: ${NVM_NODE_PREFIX}, stable, unstable, ${NVM_IOJS_PREFIX}, system"
+        beamer_echo "  - default (built-in) aliases: ${BEAMER_NODE_PREFIX}, stable, unstable, ${BEAMER_IOJS_PREFIX}, system"
         beamer_echo '  - custom aliases you define with `beamer alias foo`'
         beamer_echo
         beamer_echo ' Any options that produce colorized output should respect the `--no-colors` option.'
@@ -3115,7 +3115,7 @@ beamer() {
         beamer_echo '  beamer set-colors cgYmW                  Set text colors to cyan, green, bold yellow, magenta, and white'
         beamer_echo
         beamer_echo 'Note:'
-        beamer_echo '  to remove, delete, or uninstall beamer - just remove the `$NVM_DIR` folder (usually `~/.beamer`)'
+        beamer_echo '  to remove, delete, or uninstall beamer - just remove the `$BEAMER_DIR` folder (usually `~/.beamer`)'
         beamer_echo
         return 0;
       ;;
@@ -3163,12 +3163,12 @@ beamer() {
       beamer_err "\$SHLVL: ${SHLVL-}"
       beamer_err "whoami: '$(whoami)'"
       beamer_err "\${HOME}: ${HOME}"
-      beamer_err "\${NVM_DIR}: '$(beamer_sanitize_path "${NVM_DIR}")'"
+      beamer_err "\${BEAMER_DIR}: '$(beamer_sanitize_path "${BEAMER_DIR}")'"
       beamer_err "\${PATH}: $(beamer_sanitize_path "${PATH}")"
       beamer_err "\$PREFIX: '$(beamer_sanitize_path "${PREFIX}")'"
       beamer_err "\${NPM_CONFIG_PREFIX}: '$(beamer_sanitize_path "${NPM_CONFIG_PREFIX}")'"
-      beamer_err "\$NVM_NODEJS_ORG_MIRROR: '${NVM_NODEJS_ORG_MIRROR}'"
-      beamer_err "\$NVM_IOJS_ORG_MIRROR: '${NVM_IOJS_ORG_MIRROR}'"
+      beamer_err "\$BEAMER_NODEJS_ORG_MIRROR: '${BEAMER_NODEJS_ORG_MIRROR}'"
+      beamer_err "\$BEAMER_IOJS_ORG_MIRROR: '${BEAMER_IOJS_ORG_MIRROR}'"
       beamer_err "shell version: '$(${SHELL} --version | command head -n 1)'"
       beamer_err "uname -a: '$(command uname -a | command awk '{$2=""; print}' | command xargs)'"
       beamer_err "checksum binary: '$(beamer_get_checksum_binary 2>/dev/null)'"
@@ -3216,25 +3216,25 @@ beamer() {
         done
       fi
       for tool in ${TEST_TOOLS} ; do
-        local NVM_TOOL_VERSION
+        local BEAMER_TOOL_VERSION
         if beamer_has "${tool}"; then
           if command ls -l "$(beamer_command_info "${tool}" | command awk '{print $1}')" | command grep -q busybox; then
-            NVM_TOOL_VERSION="$(command "${tool}" --help 2>&1 | command head -n 1)"
+            BEAMER_TOOL_VERSION="$(command "${tool}" --help 2>&1 | command head -n 1)"
           else
-            NVM_TOOL_VERSION="$(command "${tool}" --version 2>&1 | command head -n 1)"
+            BEAMER_TOOL_VERSION="$(command "${tool}" --version 2>&1 | command head -n 1)"
           fi
-          beamer_err "${tool}: $(beamer_command_info "${tool}"), ${NVM_TOOL_VERSION}"
+          beamer_err "${tool}: $(beamer_command_info "${tool}"), ${BEAMER_TOOL_VERSION}"
         else
           beamer_err "${tool}: not found"
         fi
-        unset NVM_TOOL_VERSION
+        unset BEAMER_TOOL_VERSION
       done
       unset TEST_TOOLS ADD_TEST_TOOLS
 
-      local NVM_DEBUG_OUTPUT
-      for NVM_DEBUG_COMMAND in 'beamer current' 'which node' 'which iojs' 'which npm' 'npm config get prefix' 'npm root -g'; do
-        NVM_DEBUG_OUTPUT="$(${NVM_DEBUG_COMMAND} 2>&1)"
-        beamer_err "${NVM_DEBUG_COMMAND}: $(beamer_sanitize_path "${NVM_DEBUG_OUTPUT}")"
+      local BEAMER_DEBUG_OUTPUT
+      for BEAMER_DEBUG_COMMAND in 'beamer current' 'which node' 'which iojs' 'which npm' 'npm config get prefix' 'npm root -g'; do
+        BEAMER_DEBUG_OUTPUT="$(${BEAMER_DEBUG_COMMAND} 2>&1)"
+        beamer_err "${BEAMER_DEBUG_COMMAND}: $(beamer_sanitize_path "${BEAMER_DEBUG_OUTPUT}")"
       done
       return 42
     ;;
@@ -3242,8 +3242,8 @@ beamer() {
     "install" | "i")
       local version_not_provided
       version_not_provided=0
-      local NVM_OS
-      NVM_OS="$(beamer_get_os)"
+      local BEAMER_OS
+      BEAMER_OS="$(beamer_get_os)"
 
       if ! beamer_has "curl" && ! beamer_has "wget"; then
         beamer_err 'beamer needs curl or wget to proceed.'
@@ -3262,10 +3262,10 @@ beamer() {
       nosource=0
       local LTS
       local ALIAS
-      local NVM_UPGRADE_NPM
-      NVM_UPGRADE_NPM=0
-      local NVM_WRITE_TO_NVMRC
-      NVM_WRITE_TO_NVMRC=0
+      local BEAMER_UPGRADE_NPM
+      BEAMER_UPGRADE_NPM=0
+      local BEAMER_WRITE_TO_BEAMERRC
+      BEAMER_WRITE_TO_BEAMERRC=0
 
       local PROVIDED_REINSTALL_PACKAGES_FROM
       local REINSTALL_PACKAGES_FROM
@@ -3311,7 +3311,7 @@ beamer() {
             shift
           ;;
           --latest-npm)
-            NVM_UPGRADE_NPM=1
+            BEAMER_UPGRADE_NPM=1
             shift
           ;;
           --default)
@@ -3365,11 +3365,11 @@ beamer() {
             shift
           ;;
           --save | -w)
-            if [ $NVM_WRITE_TO_NVMRC -eq 1 ]; then
+            if [ $BEAMER_WRITE_TO_BEAMERRC -eq 1 ]; then
               beamer_err '--save and -w may only be provided once'
               return 6
             fi
-            NVM_WRITE_TO_NVMRC=1
+            BEAMER_WRITE_TO_BEAMERRC=1
             shift
           ;;
           *)
@@ -3394,13 +3394,13 @@ beamer() {
           fi
         else
           beamer_rc_version
-          if [ $version_not_provided -eq 1 ] && [ -z "${NVM_RC_VERSION}" ]; then
-            unset NVM_RC_VERSION
+          if [ $version_not_provided -eq 1 ] && [ -z "${BEAMER_RC_VERSION}" ]; then
+            unset BEAMER_RC_VERSION
             >&2 beamer --help
             return 127
           fi
-          provided_version="${NVM_RC_VERSION}"
-          unset NVM_RC_VERSION
+          provided_version="${BEAMER_RC_VERSION}"
+          unset BEAMER_RC_VERSION
         fi
       elif [ $# -gt 0 ]; then
         shift
@@ -3417,7 +3417,7 @@ beamer() {
         ;;
       esac
 
-      VERSION="$(NVM_VERSION_ONLY=true NVM_LTS="${LTS-}" beamer_remote_version "${provided_version}")"
+      VERSION="$(BEAMER_VERSION_ONLY=true BEAMER_LTS="${LTS-}" beamer_remote_version "${provided_version}")"
 
       if [ "${VERSION}" = 'N/A' ]; then
         local LTS_MSG
@@ -3500,7 +3500,7 @@ beamer() {
         beamer use "${VERSION}"
         EXIT_CODE=$?
         if [ $EXIT_CODE -eq 0 ]; then
-          if [ "${NVM_UPGRADE_NPM}" = 1 ]; then
+          if [ "${BEAMER_UPGRADE_NPM}" = 1 ]; then
             beamer install-latest-npm
             EXIT_CODE=$?
           fi
@@ -3520,7 +3520,7 @@ beamer() {
           beamer_ensure_default_set "${provided_version}"
         fi
 
-        if [ $NVM_WRITE_TO_NVMRC -eq 1 ]; then
+        if [ $BEAMER_WRITE_TO_BEAMERRC -eq 1 ]; then
           beamer_write_beamerrc "${VERSION}"
           EXIT_CODE=$?
         fi
@@ -3533,36 +3533,36 @@ beamer() {
         return $EXIT_CODE
       fi
 
-      if [ -n "${NVM_INSTALL_THIRD_PARTY_HOOK-}" ]; then
-        beamer_err '** $NVM_INSTALL_THIRD_PARTY_HOOK env var set; dispatching to third-party installation method **'
-        local NVM_METHOD_PREFERENCE
-        NVM_METHOD_PREFERENCE='binary'
+      if [ -n "${BEAMER_INSTALL_THIRD_PARTY_HOOK-}" ]; then
+        beamer_err '** $BEAMER_INSTALL_THIRD_PARTY_HOOK env var set; dispatching to third-party installation method **'
+        local BEAMER_METHOD_PREFERENCE
+        BEAMER_METHOD_PREFERENCE='binary'
         if [ $nobinary -eq 1 ]; then
-          NVM_METHOD_PREFERENCE='source'
+          BEAMER_METHOD_PREFERENCE='source'
         fi
         local VERSION_PATH
         VERSION_PATH="$(beamer_version_path "${VERSION}")"
-        "${NVM_INSTALL_THIRD_PARTY_HOOK}" "${VERSION}" "${FLAVOR}" std "${NVM_METHOD_PREFERENCE}" "${VERSION_PATH}" || {
+        "${BEAMER_INSTALL_THIRD_PARTY_HOOK}" "${VERSION}" "${FLAVOR}" std "${BEAMER_METHOD_PREFERENCE}" "${VERSION_PATH}" || {
           EXIT_CODE=$?
-          beamer_err '*** Third-party $NVM_INSTALL_THIRD_PARTY_HOOK env var failed to install! ***'
+          beamer_err '*** Third-party $BEAMER_INSTALL_THIRD_PARTY_HOOK env var failed to install! ***'
           return $EXIT_CODE
         }
         if ! beamer_is_version_installed "${VERSION}"; then
-          beamer_err '*** Third-party $NVM_INSTALL_THIRD_PARTY_HOOK env var claimed to succeed, but failed to install! ***'
+          beamer_err '*** Third-party $BEAMER_INSTALL_THIRD_PARTY_HOOK env var claimed to succeed, but failed to install! ***'
           return 33
         fi
         EXIT_CODE=0
       else
 
-        if [ "_${NVM_OS}" = "_freebsd" ]; then
+        if [ "_${BEAMER_OS}" = "_freebsd" ]; then
           # node.js and io.js do not have a FreeBSD binary
           nobinary=1
           beamer_err "Currently, there is no binary for FreeBSD"
-        elif [ "_$NVM_OS" = "_openbsd" ]; then
+        elif [ "_$BEAMER_OS" = "_openbsd" ]; then
           # node.js and io.js do not have a OpenBSD binary
           nobinary=1
           beamer_err "Currently, there is no binary for OpenBSD"
-        elif [ "_${NVM_OS}" = "_sunos" ]; then
+        elif [ "_${BEAMER_OS}" = "_sunos" ]; then
           # Not all node/io.js versions have a Solaris binary
           if ! beamer_has_solaris_binary "${VERSION}"; then
             nobinary=1
@@ -3572,7 +3572,7 @@ beamer() {
 
         # skip binary install if "nobinary" option specified.
         if [ $nobinary -ne 1 ] && beamer_binary_available "${VERSION}"; then
-          NVM_NO_PROGRESS="${NVM_NO_PROGRESS:-${noprogress}}" beamer_install_binary "${FLAVOR}" std "${VERSION}" "${nosource}"
+          BEAMER_NO_PROGRESS="${BEAMER_NO_PROGRESS:-${noprogress}}" beamer_install_binary "${FLAVOR}" std "${VERSION}" "${nosource}"
           EXIT_CODE=$?
         else
           EXIT_CODE=-1
@@ -3583,15 +3583,15 @@ beamer() {
         fi
 
         if [ $EXIT_CODE -ne 0 ] && [ $nosource -ne 1 ]; then
-          if [ -z "${NVM_MAKE_JOBS-}" ]; then
+          if [ -z "${BEAMER_MAKE_JOBS-}" ]; then
             beamer_get_make_jobs
           fi
 
-          if [ "_${NVM_OS}" = "_win" ]; then
+          if [ "_${BEAMER_OS}" = "_win" ]; then
             beamer_err 'Installing from source on non-WSL Windows is not supported'
             EXIT_CODE=87
           else
-            NVM_NO_PROGRESS="${NVM_NO_PROGRESS:-${noprogress}}" beamer_install_source "${FLAVOR}" std "${VERSION}" "${NVM_MAKE_JOBS}" "${ADDITIONAL_PARAMETERS}"
+            BEAMER_NO_PROGRESS="${BEAMER_NO_PROGRESS:-${noprogress}}" beamer_install_source "${FLAVOR}" std "${VERSION}" "${BEAMER_MAKE_JOBS}" "${ADDITIONAL_PARAMETERS}"
             EXIT_CODE=$?
           fi
         fi
@@ -3604,7 +3604,7 @@ beamer() {
           else
             beamer_ensure_default_set "${provided_version}"
           fi
-          if [ "${NVM_UPGRADE_NPM}" = 1 ]; then
+          if [ "${BEAMER_UPGRADE_NPM}" = 1 ]; then
             beamer install-latest-npm
             EXIT_CODE=$?
           fi
@@ -3670,11 +3670,11 @@ beamer() {
         SLUG_SOURCE="$(beamer_get_download_slug node source std "${VERSION}")"
       fi
 
-      local NVM_SUCCESS_MSG
+      local BEAMER_SUCCESS_MSG
       if beamer_is_iojs_version "${VERSION}"; then
-        NVM_SUCCESS_MSG="Uninstalled io.js $(beamer_strip_iojs_prefix "${VERSION}")"
+        BEAMER_SUCCESS_MSG="Uninstalled io.js $(beamer_strip_iojs_prefix "${VERSION}")"
       else
-        NVM_SUCCESS_MSG="Uninstalled node ${VERSION}"
+        BEAMER_SUCCESS_MSG="Uninstalled node ${VERSION}"
       fi
 
       local VERSION_PATH
@@ -3695,7 +3695,7 @@ beamer() {
         "${CACHE_DIR}/bin/${SLUG_BINARY}/files" \
         "${CACHE_DIR}/src/${SLUG_SOURCE}/files" \
         "${VERSION_PATH}" 2>/dev/null
-      beamer_echo "${NVM_SUCCESS_MSG}"
+      beamer_echo "${BEAMER_SUCCESS_MSG}"
 
       # rm any aliases that point to uninstalled version.
       for ALIAS in $(beamer_grep -l "${VERSION}" "$(beamer_alias_path)/*" 2>/dev/null); do
@@ -3703,10 +3703,10 @@ beamer() {
       done
     ;;
     "deactivate")
-      local NVM_SILENT
+      local BEAMER_SILENT
       while [ $# -ne 0 ]; do
         case "${1}" in
-          --silent) NVM_SILENT=1 ;;
+          --silent) BEAMER_SILENT=1 ;;
           --) ;;
         esac
         shift
@@ -3714,27 +3714,27 @@ beamer() {
       local NEWPATH
       NEWPATH="$(beamer_strip_path "${PATH}" "/bin")"
       if [ "_${PATH}" = "_${NEWPATH}" ]; then
-        if [ "${NVM_SILENT:-0}" -ne 1 ]; then
-          beamer_err "Could not find ${NVM_DIR}/*/bin in \${PATH}"
+        if [ "${BEAMER_SILENT:-0}" -ne 1 ]; then
+          beamer_err "Could not find ${BEAMER_DIR}/*/bin in \${PATH}"
         fi
       else
         export PATH="${NEWPATH}"
         \hash -r
-        if [ "${NVM_SILENT:-0}" -ne 1 ]; then
-          beamer_echo "${NVM_DIR}/*/bin removed from \${PATH}"
+        if [ "${BEAMER_SILENT:-0}" -ne 1 ]; then
+          beamer_echo "${BEAMER_DIR}/*/bin removed from \${PATH}"
         fi
       fi
 
       if [ -n "${MANPATH-}" ]; then
         NEWPATH="$(beamer_strip_path "${MANPATH}" "/share/man")"
         if [ "_${MANPATH}" = "_${NEWPATH}" ]; then
-          if [ "${NVM_SILENT:-0}" -ne 1 ]; then
-            beamer_err "Could not find ${NVM_DIR}/*/share/man in \${MANPATH}"
+          if [ "${BEAMER_SILENT:-0}" -ne 1 ]; then
+            beamer_err "Could not find ${BEAMER_DIR}/*/share/man in \${MANPATH}"
           fi
         else
           export MANPATH="${NEWPATH}"
-          if [ "${NVM_SILENT:-0}" -ne 1 ]; then
-            beamer_echo "${NVM_DIR}/*/share/man removed from \${MANPATH}"
+          if [ "${BEAMER_SILENT:-0}" -ne 1 ]; then
+            beamer_echo "${BEAMER_DIR}/*/share/man removed from \${MANPATH}"
           fi
         fi
       fi
@@ -3743,42 +3743,42 @@ beamer() {
         NEWPATH="$(beamer_strip_path "${NODE_PATH}" "/lib/node_modules")"
         if [ "_${NODE_PATH}" != "_${NEWPATH}" ]; then
           export NODE_PATH="${NEWPATH}"
-          if [ "${NVM_SILENT:-0}" -ne 1 ]; then
-            beamer_echo "${NVM_DIR}/*/lib/node_modules removed from \${NODE_PATH}"
+          if [ "${BEAMER_SILENT:-0}" -ne 1 ]; then
+            beamer_echo "${BEAMER_DIR}/*/lib/node_modules removed from \${NODE_PATH}"
           fi
         fi
       fi
-      unset NVM_BIN
-      unset NVM_INC
+      unset BEAMER_BIN
+      unset BEAMER_INC
     ;;
     "use")
       local PROVIDED_VERSION
-      local NVM_SILENT
-      local NVM_SILENT_ARG
-      local NVM_DELETE_PREFIX
-      NVM_DELETE_PREFIX=0
-      local NVM_LTS
-      local IS_VERSION_FROM_NVMRC
-      IS_VERSION_FROM_NVMRC=0
-      local NVM_WRITE_TO_NVMRC
-      NVM_WRITE_TO_NVMRC=0
+      local BEAMER_SILENT
+      local BEAMER_SILENT_ARG
+      local BEAMER_DELETE_PREFIX
+      BEAMER_DELETE_PREFIX=0
+      local BEAMER_LTS
+      local IS_VERSION_FROM_BEAMERRC
+      IS_VERSION_FROM_BEAMERRC=0
+      local BEAMER_WRITE_TO_BEAMERRC
+      BEAMER_WRITE_TO_BEAMERRC=0
 
       while [ $# -ne 0 ]; do
         case "$1" in
           --silent)
-            NVM_SILENT=1
-            NVM_SILENT_ARG='--silent'
+            BEAMER_SILENT=1
+            BEAMER_SILENT_ARG='--silent'
           ;;
-          --delete-prefix) NVM_DELETE_PREFIX=1 ;;
+          --delete-prefix) BEAMER_DELETE_PREFIX=1 ;;
           --) ;;
-          --lts) NVM_LTS='*' ;;
-          --lts=*) NVM_LTS="${1##--lts=}" ;;
+          --lts) BEAMER_LTS='*' ;;
+          --lts=*) BEAMER_LTS="${1##--lts=}" ;;
           --save | -w)
-            if [ $NVM_WRITE_TO_NVMRC -eq 1 ]; then
+            if [ $BEAMER_WRITE_TO_BEAMERRC -eq 1 ]; then
               beamer_err '--save and -w may only be provided once'
               return 6
             fi
-            NVM_WRITE_TO_NVMRC=1
+            BEAMER_WRITE_TO_BEAMERRC=1
           ;;
           --*) ;;
           *)
@@ -3790,16 +3790,16 @@ beamer() {
         shift
       done
 
-      if [ -n "${NVM_LTS-}" ]; then
-        VERSION="$(beamer_match_version "lts/${NVM_LTS:-*}")"
+      if [ -n "${BEAMER_LTS-}" ]; then
+        VERSION="$(beamer_match_version "lts/${BEAMER_LTS:-*}")"
       elif [ -z "${PROVIDED_VERSION-}" ]; then
-        NVM_SILENT="${NVM_SILENT:-0}" beamer_rc_version
-        if [ -n "${NVM_RC_VERSION-}" ]; then
-          PROVIDED_VERSION="${NVM_RC_VERSION}"
-          IS_VERSION_FROM_NVMRC=1
+        BEAMER_SILENT="${BEAMER_SILENT:-0}" beamer_rc_version
+        if [ -n "${BEAMER_RC_VERSION-}" ]; then
+          PROVIDED_VERSION="${BEAMER_RC_VERSION}"
+          IS_VERSION_FROM_BEAMERRC=1
           VERSION="$(beamer_version "${PROVIDED_VERSION}")"
         fi
-        unset NVM_RC_VERSION
+        unset BEAMER_RC_VERSION
         if [ -z "${VERSION}" ]; then
           beamer_err 'Please see `beamer --help` or https://github.com/beamer-sh/beamer#beamerrc for more information.'
           return 127
@@ -3813,109 +3813,109 @@ beamer() {
         return 127
       fi
 
-      if [ $NVM_WRITE_TO_NVMRC -eq 1 ]; then
+      if [ $BEAMER_WRITE_TO_BEAMERRC -eq 1 ]; then
         beamer_write_beamerrc "${VERSION}"
       fi
 
       if [ "_${VERSION}" = '_system' ]; then
-        if beamer_has_system_node && beamer deactivate "${NVM_SILENT_ARG-}" >/dev/null 2>&1; then
-          if [ "${NVM_SILENT:-0}" -ne 1 ]; then
+        if beamer_has_system_node && beamer deactivate "${BEAMER_SILENT_ARG-}" >/dev/null 2>&1; then
+          if [ "${BEAMER_SILENT:-0}" -ne 1 ]; then
             beamer_echo "Now using system version of node: $(node -v 2>/dev/null)$(beamer_print_npm_version)"
           fi
           return
-        elif beamer_has_system_iojs && beamer deactivate "${NVM_SILENT_ARG-}" >/dev/null 2>&1; then
-          if [ "${NVM_SILENT:-0}" -ne 1 ]; then
+        elif beamer_has_system_iojs && beamer deactivate "${BEAMER_SILENT_ARG-}" >/dev/null 2>&1; then
+          if [ "${BEAMER_SILENT:-0}" -ne 1 ]; then
             beamer_echo "Now using system version of io.js: $(iojs --version 2>/dev/null)$(beamer_print_npm_version)"
           fi
           return
-        elif [ "${NVM_SILENT:-0}" -ne 1 ]; then
+        elif [ "${BEAMER_SILENT:-0}" -ne 1 ]; then
           beamer_err 'System version of node not found.'
         fi
         return 127
       elif [ "_${VERSION}" = '_∞' ]; then
-        if [ "${NVM_SILENT:-0}" -ne 1 ]; then
+        if [ "${BEAMER_SILENT:-0}" -ne 1 ]; then
           beamer_err "The alias \"${PROVIDED_VERSION}\" leads to an infinite loop. Aborting."
         fi
         return 8
       fi
       if [ "${VERSION}" = 'N/A' ]; then
-        if [ "${NVM_SILENT:-0}" -ne 1 ]; then
-          beamer_ensure_version_installed "${PROVIDED_VERSION}" "${IS_VERSION_FROM_NVMRC}"
+        if [ "${BEAMER_SILENT:-0}" -ne 1 ]; then
+          beamer_ensure_version_installed "${PROVIDED_VERSION}" "${IS_VERSION_FROM_BEAMERRC}"
         fi
         return 3
       # This beamer_ensure_version_installed call can be a performance bottleneck
       # on shell startup. Perhaps we can optimize it away or make it faster.
-      elif ! beamer_ensure_version_installed "${VERSION}" "${IS_VERSION_FROM_NVMRC}"; then
+      elif ! beamer_ensure_version_installed "${VERSION}" "${IS_VERSION_FROM_BEAMERRC}"; then
         return $?
       fi
 
-      local NVM_VERSION_DIR
-      NVM_VERSION_DIR="$(beamer_version_path "${VERSION}")"
+      local BEAMER_VERSION_DIR
+      BEAMER_VERSION_DIR="$(beamer_version_path "${VERSION}")"
 
       # Change current version
-      PATH="$(beamer_change_path "${PATH}" "/bin" "${NVM_VERSION_DIR}")"
+      PATH="$(beamer_change_path "${PATH}" "/bin" "${BEAMER_VERSION_DIR}")"
       if beamer_has manpath; then
         if [ -z "${MANPATH-}" ]; then
           local MANPATH
           MANPATH=$(manpath)
         fi
         # Change current version
-        MANPATH="$(beamer_change_path "${MANPATH}" "/share/man" "${NVM_VERSION_DIR}")"
+        MANPATH="$(beamer_change_path "${MANPATH}" "/share/man" "${BEAMER_VERSION_DIR}")"
         export MANPATH
       fi
       export PATH
       \hash -r
-      export NVM_BIN="${NVM_VERSION_DIR}/bin"
-      export NVM_INC="${NVM_VERSION_DIR}/include/node"
-      if [ "${NVM_SYMLINK_CURRENT-}" = true ]; then
-        command rm -f "${NVM_DIR}/current" && ln -s "${NVM_VERSION_DIR}" "${NVM_DIR}/current"
+      export BEAMER_BIN="${BEAMER_VERSION_DIR}/bin"
+      export BEAMER_INC="${BEAMER_VERSION_DIR}/include/node"
+      if [ "${BEAMER_SYMLINK_CURRENT-}" = true ]; then
+        command rm -f "${BEAMER_DIR}/current" && ln -s "${BEAMER_VERSION_DIR}" "${BEAMER_DIR}/current"
       fi
-      local NVM_USE_OUTPUT
-      NVM_USE_OUTPUT=''
-      if [ "${NVM_SILENT:-0}" -ne 1 ]; then
+      local BEAMER_USE_OUTPUT
+      BEAMER_USE_OUTPUT=''
+      if [ "${BEAMER_SILENT:-0}" -ne 1 ]; then
         if beamer_is_iojs_version "${VERSION}"; then
-          NVM_USE_OUTPUT="Now using io.js $(beamer_strip_iojs_prefix "${VERSION}")$(beamer_print_npm_version)"
+          BEAMER_USE_OUTPUT="Now using io.js $(beamer_strip_iojs_prefix "${VERSION}")$(beamer_print_npm_version)"
         else
-          NVM_USE_OUTPUT="Now using node ${VERSION}$(beamer_print_npm_version)"
+          BEAMER_USE_OUTPUT="Now using node ${VERSION}$(beamer_print_npm_version)"
         fi
       fi
       if [ "_${VERSION}" != "_system" ]; then
-        local NVM_USE_CMD
-        NVM_USE_CMD="beamer use --delete-prefix"
+        local BEAMER_USE_CMD
+        BEAMER_USE_CMD="beamer use --delete-prefix"
         if [ -n "${PROVIDED_VERSION}" ]; then
-          NVM_USE_CMD="${NVM_USE_CMD} ${VERSION}"
+          BEAMER_USE_CMD="${BEAMER_USE_CMD} ${VERSION}"
         fi
-        if [ "${NVM_SILENT:-0}" -eq 1 ]; then
-          NVM_USE_CMD="${NVM_USE_CMD} --silent"
+        if [ "${BEAMER_SILENT:-0}" -eq 1 ]; then
+          BEAMER_USE_CMD="${BEAMER_USE_CMD} --silent"
         fi
-        if ! beamer_die_on_prefix "${NVM_DELETE_PREFIX}" "${NVM_USE_CMD}" "${NVM_VERSION_DIR}"; then
+        if ! beamer_die_on_prefix "${BEAMER_DELETE_PREFIX}" "${BEAMER_USE_CMD}" "${BEAMER_VERSION_DIR}"; then
           return 11
         fi
       fi
-      if [ -n "${NVM_USE_OUTPUT-}" ] && [ "${NVM_SILENT:-0}" -ne 1 ]; then
-        beamer_echo "${NVM_USE_OUTPUT}"
+      if [ -n "${BEAMER_USE_OUTPUT-}" ] && [ "${BEAMER_SILENT:-0}" -ne 1 ]; then
+        beamer_echo "${BEAMER_USE_OUTPUT}"
       fi
     ;;
     "run")
       local provided_version
       local has_checked_beamerrc
       has_checked_beamerrc=0
-      local IS_VERSION_FROM_NVMRC
-      IS_VERSION_FROM_NVMRC=0
+      local IS_VERSION_FROM_BEAMERRC
+      IS_VERSION_FROM_BEAMERRC=0
       # run given version of node
 
-      local NVM_SILENT
-      local NVM_SILENT_ARG
-      local NVM_LTS
+      local BEAMER_SILENT
+      local BEAMER_SILENT_ARG
+      local BEAMER_LTS
       while [ $# -gt 0 ]; do
         case "$1" in
           --silent)
-            NVM_SILENT=1
-            NVM_SILENT_ARG='--silent'
+            BEAMER_SILENT=1
+            BEAMER_SILENT_ARG='--silent'
             shift
           ;;
-          --lts) NVM_LTS='*' ; shift ;;
-          --lts=*) NVM_LTS="${1##--lts=}" ; shift ;;
+          --lts) BEAMER_LTS='*' ; shift ;;
+          --lts=*) BEAMER_LTS="${1##--lts=}" ; shift ;;
           *)
             if [ -n "$1" ]; then
               break
@@ -3926,68 +3926,68 @@ beamer() {
         esac
       done
 
-      if [ $# -lt 1 ] && [ -z "${NVM_LTS-}" ]; then
-        NVM_SILENT="${NVM_SILENT:-0}" beamer_rc_version && has_checked_beamerrc=1
-        if [ -n "${NVM_RC_VERSION-}" ]; then
-          VERSION="$(beamer_version "${NVM_RC_VERSION-}")" ||:
+      if [ $# -lt 1 ] && [ -z "${BEAMER_LTS-}" ]; then
+        BEAMER_SILENT="${BEAMER_SILENT:-0}" beamer_rc_version && has_checked_beamerrc=1
+        if [ -n "${BEAMER_RC_VERSION-}" ]; then
+          VERSION="$(beamer_version "${BEAMER_RC_VERSION-}")" ||:
         fi
-        unset NVM_RC_VERSION
+        unset BEAMER_RC_VERSION
         if [ "${VERSION:-N/A}" = 'N/A' ]; then
           >&2 beamer --help
           return 127
         fi
       fi
 
-      if [ -z "${NVM_LTS-}" ]; then
+      if [ -z "${BEAMER_LTS-}" ]; then
         provided_version="$1"
         if [ -n "${provided_version}" ]; then
           VERSION="$(beamer_version "${provided_version}")" ||:
           if [ "_${VERSION:-N/A}" = '_N/A' ] && ! beamer_is_valid_version "${provided_version}"; then
             provided_version=''
             if [ $has_checked_beamerrc -ne 1 ]; then
-              NVM_SILENT="${NVM_SILENT:-0}" beamer_rc_version && has_checked_beamerrc=1
+              BEAMER_SILENT="${BEAMER_SILENT:-0}" beamer_rc_version && has_checked_beamerrc=1
             fi
-            provided_version="${NVM_RC_VERSION}"
-            IS_VERSION_FROM_NVMRC=1
-            VERSION="$(beamer_version "${NVM_RC_VERSION}")" ||:
-            unset NVM_RC_VERSION
+            provided_version="${BEAMER_RC_VERSION}"
+            IS_VERSION_FROM_BEAMERRC=1
+            VERSION="$(beamer_version "${BEAMER_RC_VERSION}")" ||:
+            unset BEAMER_RC_VERSION
           else
             shift
           fi
         fi
       fi
 
-      local NVM_IOJS
+      local BEAMER_IOJS
       if beamer_is_iojs_version "${VERSION}"; then
-        NVM_IOJS=true
+        BEAMER_IOJS=true
       fi
 
       local EXIT_CODE
 
       beamer_is_zsh && setopt local_options shwordsplit
       local LTS_ARG
-      if [ -n "${NVM_LTS-}" ]; then
-        LTS_ARG="--lts=${NVM_LTS-}"
+      if [ -n "${BEAMER_LTS-}" ]; then
+        LTS_ARG="--lts=${BEAMER_LTS-}"
         VERSION=''
       fi
       if [ "_${VERSION}" = "_N/A" ]; then
-        beamer_ensure_version_installed "${provided_version}" "${IS_VERSION_FROM_NVMRC}"
-      elif [ "${NVM_IOJS}" = true ]; then
-        beamer exec "${NVM_SILENT_ARG-}" "${LTS_ARG-}" "${VERSION}" iojs "$@"
+        beamer_ensure_version_installed "${provided_version}" "${IS_VERSION_FROM_BEAMERRC}"
+      elif [ "${BEAMER_IOJS}" = true ]; then
+        beamer exec "${BEAMER_SILENT_ARG-}" "${LTS_ARG-}" "${VERSION}" iojs "$@"
       else
-        beamer exec "${NVM_SILENT_ARG-}" "${LTS_ARG-}" "${VERSION}" node "$@"
+        beamer exec "${BEAMER_SILENT_ARG-}" "${LTS_ARG-}" "${VERSION}" node "$@"
       fi
       EXIT_CODE="$?"
       return $EXIT_CODE
     ;;
     "exec")
-      local NVM_SILENT
-      local NVM_LTS
+      local BEAMER_SILENT
+      local BEAMER_LTS
       while [ $# -gt 0 ]; do
         case "$1" in
-          --silent) NVM_SILENT=1 ; shift ;;
-          --lts) NVM_LTS='*' ; shift ;;
-          --lts=*) NVM_LTS="${1##--lts=}" ; shift ;;
+          --silent) BEAMER_SILENT=1 ; shift ;;
+          --lts) BEAMER_LTS='*' ; shift ;;
+          --lts=*) BEAMER_LTS="${1##--lts=}" ; shift ;;
           --) break ;;
           --*)
             beamer_err "Unsupported option \"$1\"."
@@ -4005,15 +4005,15 @@ beamer() {
 
       local provided_version
       provided_version="$1"
-      if [ "${NVM_LTS-}" != '' ]; then
-        provided_version="lts/${NVM_LTS:-*}"
+      if [ "${BEAMER_LTS-}" != '' ]; then
+        provided_version="lts/${BEAMER_LTS:-*}"
         VERSION="${provided_version}"
       elif [ -n "${provided_version}" ]; then
         VERSION="$(beamer_version "${provided_version}")" ||:
         if [ "_${VERSION}" = '_N/A' ] && ! beamer_is_valid_version "${provided_version}"; then
-          NVM_SILENT="${NVM_SILENT:-0}" beamer_rc_version && has_checked_beamerrc=1
-          provided_version="${NVM_RC_VERSION}"
-          unset NVM_RC_VERSION
+          BEAMER_SILENT="${BEAMER_SILENT:-0}" beamer_rc_version && has_checked_beamerrc=1
+          provided_version="${BEAMER_RC_VERSION}"
+          unset BEAMER_RC_VERSION
           VERSION="$(beamer_version "${provided_version}")" ||:
         else
           shift
@@ -4027,29 +4027,29 @@ beamer() {
         return $EXIT_CODE
       fi
 
-      if [ "${NVM_SILENT:-0}" -ne 1 ]; then
-        if [ "${NVM_LTS-}" = '*' ]; then
+      if [ "${BEAMER_SILENT:-0}" -ne 1 ]; then
+        if [ "${BEAMER_LTS-}" = '*' ]; then
           beamer_echo "Running node latest LTS -> $(beamer_version "${VERSION}")$(beamer use --silent "${VERSION}" && beamer_print_npm_version)"
-        elif [ -n "${NVM_LTS-}" ]; then
-          beamer_echo "Running node LTS \"${NVM_LTS-}\" -> $(beamer_version "${VERSION}")$(beamer use --silent "${VERSION}" && beamer_print_npm_version)"
+        elif [ -n "${BEAMER_LTS-}" ]; then
+          beamer_echo "Running node LTS \"${BEAMER_LTS-}\" -> $(beamer_version "${VERSION}")$(beamer use --silent "${VERSION}" && beamer_print_npm_version)"
         elif beamer_is_iojs_version "${VERSION}"; then
           beamer_echo "Running io.js $(beamer_strip_iojs_prefix "${VERSION}")$(beamer use --silent "${VERSION}" && beamer_print_npm_version)"
         else
           beamer_echo "Running node ${VERSION}$(beamer use --silent "${VERSION}" && beamer_print_npm_version)"
         fi
       fi
-      NODE_VERSION="${VERSION}" "${NVM_DIR}/beamer-exec" "$@"
+      NODE_VERSION="${VERSION}" "${BEAMER_DIR}/beamer-exec" "$@"
     ;;
     "ls" | "list")
       local PATTERN
-      local NVM_NO_COLORS
-      local NVM_NO_ALIAS
+      local BEAMER_NO_COLORS
+      local BEAMER_NO_ALIAS
 
       while [ $# -gt 0 ]; do
         case "${1}" in
           --) ;;
-          --no-colors) NVM_NO_COLORS="${1}" ;;
-          --no-alias) NVM_NO_ALIAS="${1}" ;;
+          --no-colors) BEAMER_NO_COLORS="${1}" ;;
+          --no-alias) BEAMER_NO_ALIAS="${1}" ;;
           --*)
             beamer_err "Unsupported option \"${1}\"."
             return 55
@@ -4060,39 +4060,39 @@ beamer() {
         esac
         shift
       done
-      if [ -n "${PATTERN-}" ] && [ -n "${NVM_NO_ALIAS-}" ]; then
+      if [ -n "${PATTERN-}" ] && [ -n "${BEAMER_NO_ALIAS-}" ]; then
         beamer_err '`--no-alias` is not supported when a pattern is provided.'
         return 55
       fi
-      local NVM_LS_OUTPUT
-      local NVM_LS_EXIT_CODE
-      NVM_LS_OUTPUT=$(beamer_ls "${PATTERN-}")
-      NVM_LS_EXIT_CODE=$?
-      NVM_NO_COLORS="${NVM_NO_COLORS-}" beamer_print_versions "${NVM_LS_OUTPUT}"
-      if [ -z "${NVM_NO_ALIAS-}" ] && [ -z "${PATTERN-}" ]; then
-        if [ -n "${NVM_NO_COLORS-}" ]; then
+      local BEAMER_LS_OUTPUT
+      local BEAMER_LS_EXIT_CODE
+      BEAMER_LS_OUTPUT=$(beamer_ls "${PATTERN-}")
+      BEAMER_LS_EXIT_CODE=$?
+      BEAMER_NO_COLORS="${BEAMER_NO_COLORS-}" beamer_print_versions "${BEAMER_LS_OUTPUT}"
+      if [ -z "${BEAMER_NO_ALIAS-}" ] && [ -z "${PATTERN-}" ]; then
+        if [ -n "${BEAMER_NO_COLORS-}" ]; then
           beamer alias --no-colors
         else
           beamer alias
         fi
       fi
-      return $NVM_LS_EXIT_CODE
+      return $BEAMER_LS_EXIT_CODE
     ;;
     "ls-remote" | "list-remote")
-      local NVM_LTS
+      local BEAMER_LTS
       local PATTERN
-      local NVM_NO_COLORS
+      local BEAMER_NO_COLORS
 
       while [ $# -gt 0 ]; do
         case "${1-}" in
           --) ;;
           --lts)
-            NVM_LTS='*'
+            BEAMER_LTS='*'
           ;;
           --lts=*)
-            NVM_LTS="${1##--lts=}"
+            BEAMER_LTS="${1##--lts=}"
           ;;
-          --no-colors) NVM_NO_COLORS="${1}" ;;
+          --no-colors) BEAMER_NO_COLORS="${1}" ;;
           --*)
             beamer_err "Unsupported option \"${1}\"."
             return 55
@@ -4100,14 +4100,14 @@ beamer() {
           *)
             if [ -z "${PATTERN-}" ]; then
               PATTERN="${1-}"
-              if [ -z "${NVM_LTS-}" ]; then
+              if [ -z "${BEAMER_LTS-}" ]; then
                 case "${PATTERN}" in
                   'lts/*')
-                    NVM_LTS='*'
+                    BEAMER_LTS='*'
                     PATTERN=''
                   ;;
                   lts/*)
-                    NVM_LTS="${PATTERN##lts/}"
+                    BEAMER_LTS="${PATTERN##lts/}"
                     PATTERN=''
                   ;;
                 esac
@@ -4118,38 +4118,38 @@ beamer() {
         shift
       done
 
-      local NVM_OUTPUT
+      local BEAMER_OUTPUT
       local EXIT_CODE
-      NVM_OUTPUT="$(NVM_LTS="${NVM_LTS-}" beamer_remote_versions "${PATTERN}" &&:)"
+      BEAMER_OUTPUT="$(BEAMER_LTS="${BEAMER_LTS-}" beamer_remote_versions "${PATTERN}" &&:)"
       EXIT_CODE=$?
-      if [ -n "${NVM_OUTPUT}" ]; then
-        NVM_NO_COLORS="${NVM_NO_COLORS-}" beamer_print_versions "${NVM_OUTPUT}"
+      if [ -n "${BEAMER_OUTPUT}" ]; then
+        BEAMER_NO_COLORS="${BEAMER_NO_COLORS-}" beamer_print_versions "${BEAMER_OUTPUT}"
         return $EXIT_CODE
       fi
-      NVM_NO_COLORS="${NVM_NO_COLORS-}" beamer_print_versions "N/A"
+      BEAMER_NO_COLORS="${BEAMER_NO_COLORS-}" beamer_print_versions "N/A"
       return 3
     ;;
     "current")
       beamer_version current
     ;;
     "which")
-      local NVM_SILENT
+      local BEAMER_SILENT
       local provided_version
       while [ $# -ne 0 ]; do
         case "${1}" in
-          --silent) NVM_SILENT=1 ;;
+          --silent) BEAMER_SILENT=1 ;;
           --) ;;
           *) provided_version="${1-}" ;;
         esac
         shift
       done
       if [ -z "${provided_version-}" ]; then
-        NVM_SILENT="${NVM_SILENT:-0}" beamer_rc_version
-        if [ -n "${NVM_RC_VERSION}" ]; then
-          provided_version="${NVM_RC_VERSION}"
-          VERSION=$(beamer_version "${NVM_RC_VERSION}") ||:
+        BEAMER_SILENT="${BEAMER_SILENT:-0}" beamer_rc_version
+        if [ -n "${BEAMER_RC_VERSION}" ]; then
+          provided_version="${BEAMER_RC_VERSION}"
+          VERSION=$(beamer_version "${BEAMER_RC_VERSION}") ||:
         fi
-        unset NVM_RC_VERSION
+        unset BEAMER_RC_VERSION
       elif [ "${provided_version}" != 'system' ]; then
         VERSION="$(beamer_version "${provided_version}")" ||:
       else
@@ -4162,10 +4162,10 @@ beamer() {
 
       if [ "_${VERSION}" = '_system' ]; then
         if beamer_has_system_iojs >/dev/null 2>&1 || beamer_has_system_node >/dev/null 2>&1; then
-          local NVM_BIN
-          NVM_BIN="$(beamer use system >/dev/null 2>&1 && command which node)"
-          if [ -n "${NVM_BIN}" ]; then
-            beamer_echo "${NVM_BIN}"
+          local BEAMER_BIN
+          BEAMER_BIN="$(beamer use system >/dev/null 2>&1 && command which node)"
+          if [ -n "${BEAMER_BIN}" ]; then
+            beamer_echo "${BEAMER_BIN}"
             return
           fi
           return 1
@@ -4183,28 +4183,28 @@ beamer() {
         # shellcheck disable=SC2086
         return $EXIT_CODE
       fi
-      local NVM_VERSION_DIR
-      NVM_VERSION_DIR="$(beamer_version_path "${VERSION}")"
-      beamer_echo "${NVM_VERSION_DIR}/bin/node"
+      local BEAMER_VERSION_DIR
+      BEAMER_VERSION_DIR="$(beamer_version_path "${VERSION}")"
+      beamer_echo "${BEAMER_VERSION_DIR}/bin/node"
     ;;
     "alias")
-      local NVM_ALIAS_DIR
-      NVM_ALIAS_DIR="$(beamer_alias_path)"
-      local NVM_CURRENT
-      NVM_CURRENT="$(beamer_ls_current)"
+      local BEAMER_ALIAS_DIR
+      BEAMER_ALIAS_DIR="$(beamer_alias_path)"
+      local BEAMER_CURRENT
+      BEAMER_CURRENT="$(beamer_ls_current)"
 
-      command mkdir -p "${NVM_ALIAS_DIR}/lts"
+      command mkdir -p "${BEAMER_ALIAS_DIR}/lts"
 
       local ALIAS
       local TARGET
-      local NVM_NO_COLORS
+      local BEAMER_NO_COLORS
       ALIAS='--'
       TARGET='--'
 
       while [ $# -gt 0 ]; do
         case "${1-}" in
           --) ;;
-          --no-colors) NVM_NO_COLORS="${1}" ;;
+          --no-colors) BEAMER_NO_COLORS="${1}" ;;
           --*)
             beamer_err "Unsupported option \"${1}\"."
             return 55
@@ -4239,7 +4239,7 @@ beamer() {
           beamer_err "! WARNING: Version '${TARGET}' does not exist."
         fi
         beamer_make_alias "${ALIAS}" "${TARGET}"
-        NVM_NO_COLORS="${NVM_NO_COLORS-}" NVM_CURRENT="${NVM_CURRENT-}" DEFAULT=false beamer_print_formatted_alias "${ALIAS}" "${TARGET}" "${VERSION}"
+        BEAMER_NO_COLORS="${BEAMER_NO_COLORS-}" BEAMER_CURRENT="${BEAMER_CURRENT-}" DEFAULT=false beamer_print_formatted_alias "${ALIAS}" "${TARGET}" "${VERSION}"
       else
         if [ "${ALIAS-}" = '--' ]; then
           unset ALIAS
@@ -4249,9 +4249,9 @@ beamer() {
       fi
     ;;
     "unalias")
-      local NVM_ALIAS_DIR
-      NVM_ALIAS_DIR="$(beamer_alias_path)"
-      command mkdir -p "${NVM_ALIAS_DIR}"
+      local BEAMER_ALIAS_DIR
+      BEAMER_ALIAS_DIR="$(beamer_alias_path)"
+      command mkdir -p "${BEAMER_ALIAS_DIR}"
       if [ $# -ne 1 ]; then
         >&2 beamer --help
         return 127
@@ -4261,19 +4261,19 @@ beamer() {
         return 1
       fi
 
-      local NVM_IOJS_PREFIX
-      local NVM_NODE_PREFIX
-      NVM_IOJS_PREFIX="$(beamer_iojs_prefix)"
-      NVM_NODE_PREFIX="$(beamer_node_prefix)"
-      local NVM_ALIAS_EXISTS
-      NVM_ALIAS_EXISTS=0
-      if [ -f "${NVM_ALIAS_DIR}/${1-}" ]; then
-        NVM_ALIAS_EXISTS=1
+      local BEAMER_IOJS_PREFIX
+      local BEAMER_NODE_PREFIX
+      BEAMER_IOJS_PREFIX="$(beamer_iojs_prefix)"
+      BEAMER_NODE_PREFIX="$(beamer_node_prefix)"
+      local BEAMER_ALIAS_EXISTS
+      BEAMER_ALIAS_EXISTS=0
+      if [ -f "${BEAMER_ALIAS_DIR}/${1-}" ]; then
+        BEAMER_ALIAS_EXISTS=1
       fi
 
-      if [ $NVM_ALIAS_EXISTS -eq 0 ]; then
+      if [ $BEAMER_ALIAS_EXISTS -eq 0 ]; then
         case "$1" in
-          "stable" | "unstable" | "${NVM_IOJS_PREFIX}" | "${NVM_NODE_PREFIX}" | "system")
+          "stable" | "unstable" | "${BEAMER_IOJS_PREFIX}" | "${BEAMER_NODE_PREFIX}" | "system")
             beamer_err "${1-} is a default (built-in) alias and cannot be deleted."
             return 1
           ;;
@@ -4283,10 +4283,10 @@ beamer() {
         return
       fi
 
-      local NVM_ALIAS_ORIGINAL
-      NVM_ALIAS_ORIGINAL="$(beamer_alias "${1}")"
-      command rm -f "${NVM_ALIAS_DIR}/${1}"
-      beamer_echo "Deleted alias ${1} - restore it with \`beamer alias \"${1}\" \"${NVM_ALIAS_ORIGINAL}\"\`"
+      local BEAMER_ALIAS_ORIGINAL
+      BEAMER_ALIAS_ORIGINAL="$(beamer_alias "${1}")"
+      command rm -f "${BEAMER_ALIAS_DIR}/${1}"
+      beamer_echo "Deleted alias ${1} - restore it with \`beamer alias \"${1}\" \"${BEAMER_ALIAS_ORIGINAL}\"\`"
     ;;
     "install-latest-npm")
       if [ $# -ne 0 ]; then
@@ -4355,23 +4355,23 @@ beamer() {
       fi
     ;;
     "clear-cache")
-      command rm -f "${NVM_DIR}/v*" "$(beamer_version_dir)" 2>/dev/null
+      command rm -f "${BEAMER_DIR}/v*" "$(beamer_version_dir)" 2>/dev/null
       beamer_echo 'beamer cache cleared.'
     ;;
     "version")
       beamer_version "${1}"
     ;;
     "version-remote")
-      local NVM_LTS
+      local BEAMER_LTS
       local PATTERN
       while [ $# -gt 0 ]; do
         case "${1-}" in
           --) ;;
           --lts)
-            NVM_LTS='*'
+            BEAMER_LTS='*'
           ;;
           --lts=*)
-            NVM_LTS="${1##--lts=}"
+            BEAMER_LTS="${1##--lts=}"
           ;;
           --*)
             beamer_err "Unsupported option \"${1}\"."
@@ -4385,15 +4385,15 @@ beamer() {
       done
       case "${PATTERN-}" in
         'lts/*')
-          NVM_LTS='*'
+          BEAMER_LTS='*'
           unset PATTERN
         ;;
         lts/*)
-          NVM_LTS="${PATTERN##lts/}"
+          BEAMER_LTS="${PATTERN##lts/}"
           unset PATTERN
         ;;
       esac
-      NVM_VERSION_ONLY=true NVM_LTS="${NVM_LTS-}" beamer_remote_version "${PATTERN:-node}"
+      BEAMER_VERSION_ONLY=true BEAMER_LTS="${BEAMER_LTS-}" beamer_remote_version "${PATTERN:-node}"
     ;;
     "--version" | "-v")
       beamer_echo '0.40.1'
@@ -4444,9 +4444,9 @@ beamer() {
         beamer_process_beamerrc beamer_beamerrc_invalid_msg \
         beamer_write_beamerrc \
         >/dev/null 2>&1
-      unset NVM_RC_VERSION NVM_NODEJS_ORG_MIRROR NVM_IOJS_ORG_MIRROR NVM_DIR \
-        NVM_CD_FLAGS NVM_BIN NVM_INC NVM_MAKE_JOBS \
-        NVM_COLORS INSTALLED_COLOR SYSTEM_COLOR \
+      unset BEAMER_RC_VERSION BEAMER_NODEJS_ORG_MIRROR BEAMER_IOJS_ORG_MIRROR BEAMER_DIR \
+        BEAMER_CD_FLAGS BEAMER_BIN BEAMER_INC BEAMER_MAKE_JOBS \
+        BEAMER_COLORS INSTALLED_COLOR SYSTEM_COLOR \
         CURRENT_COLOR NOT_INSTALLED_COLOR DEFAULT_COLOR LTS_COLOR \
         >/dev/null 2>&1
     ;;
@@ -4468,10 +4468,10 @@ beamer() {
 }
 
 beamer_get_default_packages() {
-  local NVM_DEFAULT_PACKAGE_FILE
-  NVM_DEFAULT_PACKAGE_FILE="${NVM_DIR}/default-packages"
-  if [ -f "${NVM_DEFAULT_PACKAGE_FILE}" ]; then
-    command awk -v filename="${NVM_DEFAULT_PACKAGE_FILE}" '
+  local BEAMER_DEFAULT_PACKAGE_FILE
+  BEAMER_DEFAULT_PACKAGE_FILE="${BEAMER_DIR}/default-packages"
+  if [ -f "${BEAMER_DEFAULT_PACKAGE_FILE}" ]; then
+    command awk -v filename="${BEAMER_DEFAULT_PACKAGE_FILE}" '
       /^[[:space:]]*#/ { next }                     # Skip lines that begin with #
       /^[[:space:]]*$/ { next }                     # Skip empty lines
       /[[:space:]]/ && !/^[[:space:]]*#/ {
@@ -4484,7 +4484,7 @@ beamer_get_default_packages() {
         printf "%s", $0
         prev_space = 0
       }
-    ' "${NVM_DEFAULT_PACKAGE_FILE}"
+    ' "${BEAMER_DEFAULT_PACKAGE_FILE}"
   fi
 }
 
@@ -4495,7 +4495,7 @@ beamer_install_default_packages() {
   if [ $EXIT_CODE -ne 0 ] || [ -z "${DEFAULT_PACKAGES}" ]; then
     return $EXIT_CODE
   fi
-  beamer_echo "Installing default global packages from ${NVM_DIR}/default-packages..."
+  beamer_echo "Installing default global packages from ${BEAMER_DIR}/default-packages..."
   beamer_echo "npm install -g --quiet ${DEFAULT_PACKAGES}"
 
   if ! beamer_echo "${DEFAULT_PACKAGES}" | command xargs npm install -g --quiet; then
@@ -4509,16 +4509,16 @@ beamer_supports_xz() {
     return 1
   fi
 
-  local NVM_OS
-  NVM_OS="$(beamer_get_os)"
-  if [ "_${NVM_OS}" = '_darwin' ]; then
+  local BEAMER_OS
+  BEAMER_OS="$(beamer_get_os)"
+  if [ "_${BEAMER_OS}" = '_darwin' ]; then
     local MACOS_VERSION
     MACOS_VERSION="$(sw_vers -productVersion)"
     if beamer_version_greater "10.9.0" "${MACOS_VERSION}"; then
       # macOS 10.8 and earlier doesn't support extracting xz-compressed tarballs with tar
       return 1
     fi
-  elif [ "_${NVM_OS}" = '_freebsd' ]; then
+  elif [ "_${BEAMER_OS}" = '_freebsd' ]; then
     if ! [ -e '/usr/lib/liblzma.so' ]; then
       # FreeBSD without /usr/lib/liblzma.so doesn't support extracting xz-compressed tarballs with tar
       return 1
@@ -4546,7 +4546,7 @@ beamer_supports_xz() {
     return 0
   fi
 
-  case "${NVM_OS}" in
+  case "${BEAMER_OS}" in
     darwin)
       # darwin only has xz for io.js v2.3.2 and later
       beamer_version_greater_than_or_equal_to "${1}" "2.3.2"
@@ -4559,16 +4559,16 @@ beamer_supports_xz() {
 }
 
 beamer_auto() {
-  local NVM_MODE
-  NVM_MODE="${1-}"
+  local BEAMER_MODE
+  BEAMER_MODE="${1-}"
 
-  case "${NVM_MODE}" in
+  case "${BEAMER_MODE}" in
     none) return 0 ;;
     use)
       local VERSION
-      local NVM_CURRENT
-      NVM_CURRENT="$(beamer_ls_current)"
-      if [ "_${NVM_CURRENT}" = '_none' ] || [ "_${NVM_CURRENT}" = '_system' ]; then
+      local BEAMER_CURRENT
+      BEAMER_CURRENT="$(beamer_ls_current)"
+      if [ "_${BEAMER_CURRENT}" = '_none' ] || [ "_${BEAMER_CURRENT}" = '_system' ]; then
         VERSION="$(beamer_resolve_local_alias default 2>/dev/null || beamer_echo)"
         if [ -n "${VERSION}" ]; then
           if [ "_${VERSION}" != '_N/A' ] && beamer_is_valid_version "${VERSION}"; then
@@ -4580,7 +4580,7 @@ beamer_auto() {
           beamer use --silent >/dev/null
         fi
       else
-        beamer use --silent "${NVM_CURRENT}" >/dev/null
+        beamer use --silent "${BEAMER_CURRENT}" >/dev/null
       fi
     ;;
     install)
@@ -4602,16 +4602,16 @@ beamer_auto() {
 }
 
 beamer_process_parameters() {
-  local NVM_AUTO_MODE
-  NVM_AUTO_MODE='use'
+  local BEAMER_AUTO_MODE
+  BEAMER_AUTO_MODE='use'
   while [ "$#" -ne 0 ]; do
     case "$1" in
-      --install) NVM_AUTO_MODE='install' ;;
-      --no-use) NVM_AUTO_MODE='none' ;;
+      --install) BEAMER_AUTO_MODE='install' ;;
+      --no-use) BEAMER_AUTO_MODE='none' ;;
     esac
     shift
   done
-  beamer_auto "${NVM_AUTO_MODE}"
+  beamer_auto "${BEAMER_AUTO_MODE}"
 }
 
 beamer_process_parameters "$@"
