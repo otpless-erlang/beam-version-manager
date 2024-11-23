@@ -33,7 +33,7 @@ beamer_install_dir() {
 }
 
 beamer_latest_version() {
-  beamer_echo "v0.40.1"
+  beamer_echo "v0.0.1"
 }
 
 beamer_profile_is_bash_or_zsh() {
@@ -58,15 +58,15 @@ beamer_profile_is_bash_or_zsh() {
 #
 beamer_source() {
   local BEAMER_GITHUB_REPO
-  BEAMER_GITHUB_REPO="${BEAMER_INSTALL_GITHUB_REPO:-beamer-sh/beamer}"
-  if [ "${BEAMER_GITHUB_REPO}" != 'beamer-sh/beamer' ]; then
+  BEAMER_GITHUB_REPO="${BEAMER_INSTALL_GITHUB_REPO:-otpless-erlang/beamer}"
+  if [ "${BEAMER_GITHUB_REPO}" != 'otpless-erlang/beamer' ]; then
     { beamer_echo >&2 "$(cat)" ; } << EOF
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 @    WARNING: REMOTE REPO IDENTIFICATION HAS CHANGED!     @
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 IT IS POSSIBLE THAT SOMEONE IS DOING SOMETHING NASTY!
 
-The default repository for this install is \`beamer-sh/beamer\`,
+The default repository for this install is \`otpless-erlang/beamer\`,
 but the environment variables \`\$BEAMER_INSTALL_GITHUB_REPO\` is
 currently set to \`${BEAMER_GITHUB_REPO}\`.
 
@@ -318,50 +318,50 @@ beamer_detect_profile() {
 }
 
 #
-# Check whether the user has any globally-installed npm modules in their system
-# Node, and warn them if so.
+# Check whether the user has any globally-installed BEAM packages in their
+# system BEAM, and warn them if so.
 #
-beamer_check_global_modules() {
-  local NPM_COMMAND
-  NPM_COMMAND="$(command -v npm 2>/dev/null)" || return 0
-  [ -n "${BEAMER_DIR}" ] && [ -z "${NPM_COMMAND%%"$BEAMER_DIR"/*}" ] && return 0
+beamer_check_global_packages() {
+  local BEAMY_COMMAND
+  BEAMY_COMMAND="$(command -v beamy 2>/dev/null)" || return 0
+  [ -n "${BEAMER_DIR}" ] && [ -z "${BEAMY_COMMAND%%"$BEAMER_DIR"/*}" ] && return 0
 
-  local NPM_VERSION
-  NPM_VERSION="$(npm --version)"
-  NPM_VERSION="${NPM_VERSION:--1}"
-  [ "${NPM_VERSION%%[!-0-9]*}" -gt 0 ] || return 0
+  local BEAMY_VERSION
+  BEAMY_VERSION="$(beamy --version)"
+  BEAMY_VERSION="${BEAMY_VERSION:--1}"
+  [ "${BEAMY_VERSION%%[!-0-9]*}" -gt 0 ] || return 0
 
-  local NPM_GLOBAL_MODULES
-  NPM_GLOBAL_MODULES="$(
-    npm list -g --depth=0 |
-    command sed -e '/ npm@/d' -e '/ (empty)$/d'
+  local BEAMY_GLOBAL_PACKAGES
+  BEAMY_GLOBAL_PACKAGES="$(
+    beamy list -g --depth=0 |
+    command sed -e '/ beamy@/d' -e '/ (empty)$/d'
   )"
 
-  local MODULE_COUNT
-  MODULE_COUNT="$(
-    command printf %s\\n "$NPM_GLOBAL_MODULES" |
+  local PACKAGE_COUNT
+  PACKAGE_COUNT="$(
+    command printf %s\\n "$BEAMY_GLOBAL_PACKAGES" |
     command sed -ne '1!p' |                     # Remove the first line
     wc -l | command tr -d ' '                   # Count entries
   )"
 
-  if [ "${MODULE_COUNT}" != '0' ]; then
+  if [ "${PACKAGE_COUNT}" != '0' ]; then
     # shellcheck disable=SC2016
-    beamer_echo '=> You currently have modules installed globally with `npm`. These will no'
+    beamer_echo '=> You currently have packages installed globally with `beamy`. These will no'
     # shellcheck disable=SC2016
-    beamer_echo '=> longer be linked to the active version of Node when you install a new node'
+    beamer_echo '=> longer be linked to the active version of OTPless Erlang when you install a new version'
     # shellcheck disable=SC2016
     beamer_echo '=> with `beamer`; and they may (depending on how you construct your `$PATH`)'
     # shellcheck disable=SC2016
-    beamer_echo '=> override the binaries of modules installed with `beamer`:'
+    beamer_echo '=> override the binaries of packages installed with `beamer`:'
     beamer_echo
 
-    command printf %s\\n "$NPM_GLOBAL_MODULES"
+    command printf %s\\n "$BEAMY_GLOBAL_PACKAGES"
     beamer_echo '=> If you wish to uninstall them at a later point (or re-install them under your'
     # shellcheck disable=SC2016
-    beamer_echo '=> `beamer` node installs), you can remove them from the system Node as follows:'
+    beamer_echo '=> `beamer` OTPless Erlang installs), you can remove them from the system BEAM as follows:'
     beamer_echo
     beamer_echo '     $ beamer use system'
-    beamer_echo '     $ npm uninstall -g a_module'
+    beamer_echo '     $ beamy uninstall -g a_package'
     beamer_echo
   fi
 }
@@ -466,7 +466,7 @@ beamer_do_install() {
   # shellcheck source=/dev/null
   \. "$(beamer_install_dir)/beamer.sh"
 
-  beamer_check_global_modules
+  beamer_check_global_packages
 
   beamer_install_node
 
@@ -486,7 +486,7 @@ beamer_do_install() {
 beamer_reset() {
   unset -f beamer_has beamer_install_dir beamer_latest_version beamer_profile_is_bash_or_zsh \
     beamer_source beamer_node_version beamer_download install_beamer_from_git beamer_install_node \
-    install_beamer_as_script beamer_try_profile beamer_detect_profile beamer_check_global_modules \
+    install_beamer_as_script beamer_try_profile beamer_detect_profile beamer_check_global_packages \
     beamer_do_install beamer_reset beamer_default_install_dir beamer_grep
 }
 
