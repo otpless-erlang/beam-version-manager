@@ -159,8 +159,8 @@ beamer_sanitize_auth_header() {
     beamer_echo "$1" | command sed 's/[^a-zA-Z0-9:;_. -]//g'
 }
 
-beamer_has_system_node() {
-  [ "$(beamer deactivate >/dev/null 2>&1 && command -v node)" != '' ]
+beamer_has_system_beam() {
+  [ "$(beamer deactivate >/dev/null 2>&1 && command -v beam)" != '' ]
 }
 
 beamer_has_system_iojs() {
@@ -172,9 +172,9 @@ beamer_is_version_installed() {
     return 1
   fi
   local BEAMER_NODE_BINARY
-  BEAMER_NODE_BINARY='node'
+  BEAMER_NODE_BINARY='beam'
   if [ "_$(beamer_get_os)" = '_win' ]; then
-    BEAMER_NODE_BINARY='node.exe'
+    BEAMER_NODE_BINARY='beam.exe'
   fi
   if [ -x "$(beamer_version_path "$1" 2>/dev/null)/bin/${BEAMER_NODE_BINARY}" ]; then
     return 0
@@ -197,13 +197,13 @@ beamer_install_latest_npm() {
   local NODE_VERSION
   NODE_VERSION="$(beamer_strip_iojs_prefix "$(beamer_ls_current)")"
   if [ "${NODE_VERSION}" = 'system' ]; then
-    NODE_VERSION="$(node --version)"
+    NODE_VERSION="$(beam --version)"
   elif [ "${NODE_VERSION}" = 'none' ]; then
-    beamer_echo "Detected node version ${NODE_VERSION}, npm version v${NPM_VERSION}"
+    beamer_echo "Detected beam version ${NODE_VERSION}, npm version v${NPM_VERSION}"
     NODE_VERSION=''
   fi
   if [ -z "${NODE_VERSION}" ]; then
-    beamer_err 'Unable to obtain node version.'
+    beamer_err 'Unable to obtain beam version.'
     return 1
   fi
   local NPM_VERSION
@@ -216,7 +216,7 @@ beamer_install_latest_npm() {
   local BEAMER_NPM_CMD
   BEAMER_NPM_CMD='npm'
   if [ "${BEAMER_DEBUG-}" = 1 ]; then
-    beamer_echo "Detected node version ${NODE_VERSION}, npm version v${NPM_VERSION}"
+    beamer_echo "Detected beam version ${NODE_VERSION}, npm version v${NPM_VERSION}"
     BEAMER_NPM_CMD='beamer_echo npm'
   fi
 
@@ -232,10 +232,10 @@ beamer_install_latest_npm() {
   fi
 
   if [ $BEAMER_IS_0_6 -eq 1 ]; then
-    beamer_echo '* `node` v0.6.x can only upgrade to `npm` v1.3.x'
+    beamer_echo '* `beam` v0.6.x can only upgrade to `npm` v1.3.x'
     $BEAMER_NPM_CMD install -g npm@1.3
   elif [ $BEAMER_IS_0_9 -eq 0 ]; then
-    # node 0.9 breaks here, for some reason
+    # beam 0.9 breaks here, for some reason
     if beamer_version_greater_than_or_equal_to "${NPM_VERSION}" 1.0.0 && beamer_version_greater 2.0.0 "${NPM_VERSION}"; then
       beamer_echo '* `npm` v1.x needs to first jump to `npm` v1.4.28 to be able to upgrade further'
       $BEAMER_NPM_CMD install -g npm@1.4.28
@@ -246,12 +246,12 @@ beamer_install_latest_npm() {
   fi
 
   if [ $BEAMER_IS_0_9 -eq 1 ] || [ $BEAMER_IS_0_6 -eq 1 ]; then
-    beamer_echo '* node v0.6 and v0.9 are unable to upgrade further'
+    beamer_echo '* beam v0.6 and v0.9 are unable to upgrade further'
   elif beamer_version_greater 1.1.0 "${NODE_VERSION}"; then
-    beamer_echo '* `npm` v4.5.x is the last version that works on `node` versions < v1.1.0'
+    beamer_echo '* `npm` v4.5.x is the last version that works on `beam` versions < v1.1.0'
     $BEAMER_NPM_CMD install -g npm@4.5
   elif beamer_version_greater 4.0.0 "${NODE_VERSION}"; then
-    beamer_echo '* `npm` v5 and higher do not work on `node` versions below v4.0.0'
+    beamer_echo '* `npm` v5 and higher do not work on `beam` versions below v4.0.0'
     $BEAMER_NPM_CMD install -g npm@4
   elif [ $BEAMER_IS_0_9 -eq 0 ] && [ $BEAMER_IS_0_6 -eq 0 ]; then
     local BEAMER_IS_4_4_OR_BELOW
@@ -357,33 +357,33 @@ beamer_install_latest_npm() {
     if [ $BEAMER_IS_4_4_OR_BELOW -eq 1 ] || {
       [ $BEAMER_IS_5_OR_ABOVE -eq 1 ] && beamer_version_greater 5.10.0 "${NODE_VERSION}"; \
     }; then
-      beamer_echo '* `npm` `v5.3.x` is the last version that works on `node` 4.x versions below v4.4, or 5.x versions below v5.10, due to `Buffer.alloc`'
+      beamer_echo '* `npm` `v5.3.x` is the last version that works on `beam` 4.x versions below v4.4, or 5.x versions below v5.10, due to `Buffer.alloc`'
       $BEAMER_NPM_CMD install -g npm@5.3
     elif [ $BEAMER_IS_4_4_OR_BELOW -eq 0 ] && beamer_version_greater 4.7.0 "${NODE_VERSION}"; then
-      beamer_echo '* `npm` `v5.4.1` is the last version that works on `node` `v4.5` and `v4.6`'
+      beamer_echo '* `npm` `v5.4.1` is the last version that works on `beam` `v4.5` and `v4.6`'
       $BEAMER_NPM_CMD install -g npm@5.4.1
     elif [ $BEAMER_IS_6_OR_ABOVE -eq 0 ]; then
-      beamer_echo '* `npm` `v5.x` is the last version that works on `node` below `v6.0.0`'
+      beamer_echo '* `npm` `v5.x` is the last version that works on `beam` below `v6.0.0`'
       $BEAMER_NPM_CMD install -g npm@5
     elif \
       { [ $BEAMER_IS_6_OR_ABOVE -eq 1 ] && [ $BEAMER_IS_6_2_OR_ABOVE -eq 0 ]; } \
       || { [ $BEAMER_IS_9_OR_ABOVE -eq 1 ] && [ $BEAMER_IS_9_3_OR_ABOVE -eq 0 ]; } \
     ; then
-      beamer_echo '* `npm` `v6.9` is the last version that works on `node` `v6.0.x`, `v6.1.x`, `v9.0.x`, `v9.1.x`, or `v9.2.x`'
+      beamer_echo '* `npm` `v6.9` is the last version that works on `beam` `v6.0.x`, `v6.1.x`, `v9.0.x`, `v9.1.x`, or `v9.2.x`'
       $BEAMER_NPM_CMD install -g npm@6.9
     elif [ $BEAMER_IS_10_OR_ABOVE -eq 0 ]; then
       if beamer_version_greater 4.4.4 "${NPM_VERSION}"; then
         beamer_echo '* `npm` `v4.4.4` or later is required to install npm v6.14.18'
         $BEAMER_NPM_CMD install -g npm@4
       fi
-      beamer_echo '* `npm` `v6.x` is the last version that works on `node` below `v10.0.0`'
+      beamer_echo '* `npm` `v6.x` is the last version that works on `beam` below `v10.0.0`'
       $BEAMER_NPM_CMD install -g npm@6
     elif \
       [ $BEAMER_IS_12_LTS_OR_ABOVE -eq 0 ] \
       || { [ $BEAMER_IS_13_OR_ABOVE -eq 1 ] && [ $BEAMER_IS_14_LTS_OR_ABOVE -eq 0 ]; } \
       || { [ $BEAMER_IS_15_OR_ABOVE -eq 1 ] && [ $BEAMER_IS_16_OR_ABOVE -eq 0 ]; } \
     ; then
-      beamer_echo '* `npm` `v7.x` is the last version that works on `node` `v13`, `v15`, below `v12.13`, or `v14.0` - `v14.15`'
+      beamer_echo '* `npm` `v7.x` is the last version that works on `beam` `v13`, `v15`, below `v12.13`, or `v14.0` - `v14.15`'
       $BEAMER_NPM_CMD install -g npm@7
     elif \
       { [ $BEAMER_IS_12_LTS_OR_ABOVE -eq 1 ] && [ $BEAMER_IS_13_OR_ABOVE -eq 0 ]; } \
@@ -391,17 +391,17 @@ beamer_install_latest_npm() {
       || { [ $BEAMER_IS_16_OR_ABOVE -eq 1 ] && [ $BEAMER_IS_16_LTS_OR_ABOVE -eq 0 ]; } \
       || { [ $BEAMER_IS_17_OR_ABOVE -eq 1 ] && [ $BEAMER_IS_18_OR_ABOVE -eq 0 ]; } \
     ; then
-      beamer_echo '* `npm` `v8.6` is the last version that works on `node` `v12`, `v14.13` - `v14.16`, or `v16.0` - `v16.12`'
+      beamer_echo '* `npm` `v8.6` is the last version that works on `beam` `v12`, `v14.13` - `v14.16`, or `v16.0` - `v16.12`'
       # ^8.7 breaks `npm ls` on file: deps
       $BEAMER_NPM_CMD install -g npm@8.6
     elif \
       [ $BEAMER_IS_18_17_OR_ABOVE -eq 0 ] \
       || { [ $BEAMER_IS_19_OR_ABOVE -eq 1 ] && [ $BEAMER_IS_20_5_OR_ABOVE -eq 0 ]; } \
     ; then
-      beamer_echo '* `npm` `v9.x` is the last version that works on `node` `< v18.17`, `v19`, or `v20.0` - `v20.4`'
+      beamer_echo '* `npm` `v9.x` is the last version that works on `beam` `< v18.17`, `v19`, or `v20.0` - `v20.4`'
       $BEAMER_NPM_CMD install -g npm@9
     else
-      beamer_echo '* Installing latest `npm`; if this does not work on your node version, please report a bug!'
+      beamer_echo '* Installing latest `npm`; if this does not work on your beam version, please report a bug!'
       $BEAMER_NPM_CMD install -g npm
     fi
   fi
@@ -442,16 +442,16 @@ unset BEAMER_SCRIPT_SOURCE 2>/dev/null
 beamer_tree_contains_path() {
   local tree
   tree="${1-}"
-  local node_path
-  node_path="${2-}"
+  local beam_path
+  beam_path="${2-}"
 
-  if [ "@${tree}@" = "@@" ] || [ "@${node_path}@" = "@@" ]; then
-    beamer_err "both the tree and the node path are required"
+  if [ "@${tree}@" = "@@" ] || [ "@${beam_path}@" = "@@" ]; then
+    beamer_err "both the tree and the beam path are required"
     return 2
   fi
 
   local previous_pathdir
-  previous_pathdir="${node_path}"
+  previous_pathdir="${beam_path}"
   local pathdir
   pathdir=$(dirname "${previous_pathdir}")
   while [ "${pathdir}" != '' ] && [ "${pathdir}" != '.' ] && [ "${pathdir}" != '/' ] &&
@@ -465,7 +465,7 @@ beamer_tree_contains_path() {
 beamer_find_project_dir() {
   local path_
   path_="${PWD}"
-  while [ "${path_}" != "" ] && [ "${path_}" != '.' ] && [ ! -f "${path_}/package.json" ] && [ ! -d "${path_}/node_modules" ]; do
+  while [ "${path_}" != "" ] && [ "${path_}" != '.' ] && [ ! -f "${path_}/package.json" ] && [ ! -d "${path_}/beam_modules" ]; do
     path_=${path_%/*}
   done
   beamer_echo "${path_}"
@@ -544,8 +544,8 @@ beamer_process_beamerrc() {
       key=$(beamer_echo "${key}" | command sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
       value=$(beamer_echo "${value}" | command sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
 
-      # Check for invalid key "node"
-      if [ "${key}" = 'node' ]; then
+      # Check for invalid key "beam"
+      if [ "${key}" = 'beam' ]; then
         beamer_beamerrc_invalid_msg "${lines}"
         return 1
       fi
@@ -644,7 +644,7 @@ beamer_version_dir() {
   local BEAMER_WHICH_DIR
   BEAMER_WHICH_DIR="${1-}"
   if [ -z "${BEAMER_WHICH_DIR}" ] || [ "${BEAMER_WHICH_DIR}" = "new" ]; then
-    beamer_echo "${BEAMER_DIR}/versions/node"
+    beamer_echo "${BEAMER_DIR}/versions/beam"
   elif [ "_${BEAMER_WHICH_DIR}" = "_iojs" ]; then
     beamer_echo "${BEAMER_DIR}/versions/io.js"
   elif [ "_${BEAMER_WHICH_DIR}" = "_old" ]; then
@@ -680,10 +680,10 @@ beamer_ensure_version_installed() {
   local IS_VERSION_FROM_BEAMERRC
   IS_VERSION_FROM_BEAMERRC="${2-}"
   if [ "${PROVIDED_VERSION}" = 'system' ]; then
-    if beamer_has_system_iojs || beamer_has_system_node; then
+    if beamer_has_system_iojs || beamer_has_system_beam; then
       return 0
     fi
-    beamer_err "N/A: no system version of node/io.js is installed."
+    beamer_err "N/A: no system version of beam/io.js is installed."
     return 1
   fi
   local LOCAL_VERSION
@@ -703,7 +703,7 @@ beamer_ensure_version_installed() {
     if [ "${IS_VERSION_FROM_BEAMERRC}" != '1' ]; then
         beamer_err "You need to run \`beamer install ${PROVIDED_VERSION}\` to install and use it."
       else
-        beamer_err 'You need to run `beamer install` to install and use the node version specified in `.beamerrc`.'
+        beamer_err 'You need to run `beamer install` to install and use the beam version specified in `.beamerrc`.'
     fi
     return 1
   fi
@@ -725,7 +725,7 @@ beamer_version() {
   fi
 
   local BEAMER_NODE_PREFIX
-  BEAMER_NODE_PREFIX="$(beamer_node_prefix)"
+  BEAMER_NODE_PREFIX="$(beamer_beam_prefix)"
   case "_${PATTERN}" in
     "_${BEAMER_NODE_PREFIX}" | "_${BEAMER_NODE_PREFIX}-")
       PATTERN="stable"
@@ -772,7 +772,7 @@ beamer_remote_versions() {
   local BEAMER_IOJS_PREFIX
   BEAMER_IOJS_PREFIX="$(beamer_iojs_prefix)"
   local BEAMER_NODE_PREFIX
-  BEAMER_NODE_PREFIX="$(beamer_node_prefix)"
+  BEAMER_NODE_PREFIX="$(beamer_beam_prefix)"
 
   local PATTERN
   PATTERN="${1-}"
@@ -846,7 +846,7 @@ beamer_is_valid_version() {
   fi
   case "${1-}" in
     "$(beamer_iojs_prefix)" | \
-    "$(beamer_node_prefix)")
+    "$(beamer_beam_prefix)")
       return 0
     ;;
     *)
@@ -974,7 +974,7 @@ beamer_change_path() {
 }
 
 beamer_binary_available() {
-  # binaries started with node 0.8.6
+  # binaries started with beam 0.8.6
   beamer_version_greater_than_or_equal_to "$(beamer_strip_iojs_prefix "${1-}")" v0.8.6
 }
 
@@ -1215,7 +1215,7 @@ beamer_list_aliases() {
 
   (
     local ALIAS_NAME
-    for ALIAS_NAME in "$(beamer_node_prefix)" "stable" "unstable" "$(beamer_iojs_prefix)"; do
+    for ALIAS_NAME in "$(beamer_beam_prefix)" "stable" "unstable" "$(beamer_iojs_prefix)"; do
       {
         # shellcheck disable=SC2030,SC2031 # (https://github.com/koalaman/shellcheck/issues/2217)
         if [ ! -f "${BEAMER_ALIAS_DIR}/${ALIAS_NAME}" ] && { [ -z "${ALIAS}" ] || [ "${ALIAS_NAME}" = "${ALIAS}" ]; }; then
@@ -1267,13 +1267,13 @@ beamer_alias() {
 
 beamer_ls_current() {
   local BEAMER_LS_CURRENT_NODE_PATH
-  if ! BEAMER_LS_CURRENT_NODE_PATH="$(command which node 2>/dev/null)"; then
+  if ! BEAMER_LS_CURRENT_NODE_PATH="$(command which beam 2>/dev/null)"; then
     beamer_echo 'none'
   elif beamer_tree_contains_path "$(beamer_version_dir iojs)" "${BEAMER_LS_CURRENT_NODE_PATH}"; then
     beamer_add_iojs_prefix "$(iojs --version 2>/dev/null)"
   elif beamer_tree_contains_path "${BEAMER_DIR}" "${BEAMER_LS_CURRENT_NODE_PATH}"; then
     local VERSION
-    VERSION="$(node --version 2>/dev/null)"
+    VERSION="$(beam --version 2>/dev/null)"
     if [ "${VERSION}" = "v0.6.21-pre" ]; then
       beamer_echo 'v0.6.21'
     else
@@ -1320,7 +1320,7 @@ beamer_resolve_alias() {
     local BEAMER_IOJS_PREFIX
     BEAMER_IOJS_PREFIX="$(beamer_iojs_prefix)"
     local BEAMER_NODE_PREFIX
-    BEAMER_NODE_PREFIX="$(beamer_node_prefix)"
+    BEAMER_NODE_PREFIX="$(beamer_beam_prefix)"
     case "${ALIAS}" in
       '∞' | \
       "${BEAMER_IOJS_PREFIX}" | "${BEAMER_IOJS_PREFIX}-" | \
@@ -1367,8 +1367,8 @@ beamer_resolve_local_alias() {
 beamer_iojs_prefix() {
   beamer_echo 'iojs'
 }
-beamer_node_prefix() {
-  beamer_echo 'node'
+beamer_beam_prefix() {
+  beamer_echo 'beam'
 }
 
 beamer_is_iojs_version() {
@@ -1403,7 +1403,7 @@ beamer_ls() {
   local BEAMER_IOJS_PREFIX
   BEAMER_IOJS_PREFIX="$(beamer_iojs_prefix)"
   local BEAMER_NODE_PREFIX
-  BEAMER_NODE_PREFIX="$(beamer_node_prefix)"
+  BEAMER_NODE_PREFIX="$(beamer_beam_prefix)"
   local BEAMER_VERSION_DIR_IOJS
   BEAMER_VERSION_DIR_IOJS="$(beamer_version_dir "${BEAMER_IOJS_PREFIX}")"
   local BEAMER_VERSION_DIR_NEW
@@ -1470,14 +1470,14 @@ beamer_ls() {
       BEAMER_DIRS_TO_SEARCH1="${BEAMER_VERSION_DIR_OLD}"
       BEAMER_DIRS_TO_SEARCH2="${BEAMER_VERSION_DIR_NEW}"
       PATTERN=''
-      if beamer_has_system_node; then
+      if beamer_has_system_beam; then
         BEAMER_ADD_SYSTEM=true
       fi
     else
       BEAMER_DIRS_TO_SEARCH1="${BEAMER_VERSION_DIR_OLD}"
       BEAMER_DIRS_TO_SEARCH2="${BEAMER_VERSION_DIR_NEW}"
       BEAMER_DIRS_TO_SEARCH3="${BEAMER_VERSION_DIR_IOJS}"
-      if beamer_has_system_iojs || beamer_has_system_node; then
+      if beamer_has_system_iojs || beamer_has_system_beam; then
         BEAMER_ADD_SYSTEM=true
       fi
     fi
@@ -1551,7 +1551,7 @@ beamer_ls_remote() {
   else
     PATTERN=".*"
   fi
-  BEAMER_LTS="${BEAMER_LTS-}" beamer_ls_remote_index_tab node std "${PATTERN}"
+  BEAMER_LTS="${BEAMER_LTS-}" beamer_ls_remote_index_tab beam std "${PATTERN}"
 }
 
 beamer_ls_remote_iojs() {
@@ -1583,20 +1583,20 @@ beamer_ls_remote_index_tab() {
   PREFIX=''
   case "${FLAVOR}-${TYPE}" in
     iojs-std) PREFIX="$(beamer_iojs_prefix)-" ;;
-    node-std) PREFIX='' ;;
+    beam-std) PREFIX='' ;;
     iojs-*)
       beamer_err 'unknown type of io.js release'
       return 4
     ;;
     *)
-      beamer_err 'unknown type of node.js release'
+      beamer_err 'unknown type of beam.js release'
       return 4
     ;;
   esac
   local SORT_COMMAND
   SORT_COMMAND='command sort'
   case "${FLAVOR}" in
-    node) SORT_COMMAND='command sort -t. -u -k 1.2,1n -k 2,2n -k 3,3n' ;;
+    beam) SORT_COMMAND='command sort -t. -u -k 1.2,1n -k 2,2n -k 3,3n' ;;
   esac
 
   local PATTERN
@@ -1798,9 +1798,9 @@ beamer_compare_checksum() {
 beamer_get_checksum() {
   local FLAVOR
   case "${1-}" in
-    node | iojs) FLAVOR="${1}" ;;
+    beam | iojs) FLAVOR="${1}" ;;
     *)
-      beamer_err 'supported flavors: node, iojs'
+      beamer_err 'supported flavors: beam, iojs'
       return 2
     ;;
   esac
@@ -1914,7 +1914,7 @@ beamer_validate_implicit_alias() {
   local BEAMER_IOJS_PREFIX
   BEAMER_IOJS_PREFIX="$(beamer_iojs_prefix)"
   local BEAMER_NODE_PREFIX
-  BEAMER_NODE_PREFIX="$(beamer_node_prefix)"
+  BEAMER_NODE_PREFIX="$(beamer_beam_prefix)"
 
   case "$1" in
     "stable" | "unstable" | "${BEAMER_IOJS_PREFIX}" | "${BEAMER_NODE_PREFIX}")
@@ -1942,7 +1942,7 @@ beamer_print_implicit_alias() {
   local BEAMER_IOJS_PREFIX
   BEAMER_IOJS_PREFIX="$(beamer_iojs_prefix)"
   local BEAMER_NODE_PREFIX
-  BEAMER_NODE_PREFIX="$(beamer_node_prefix)"
+  BEAMER_NODE_PREFIX="$(beamer_beam_prefix)"
   local BEAMER_COMMAND
   local BEAMER_ADD_PREFIX_COMMAND
   local LAST_TWO
@@ -1978,7 +1978,7 @@ beamer_print_implicit_alias() {
     *)
       BEAMER_COMMAND="beamer_ls_remote"
       if [ "_$1" = "_local" ]; then
-        BEAMER_COMMAND="beamer_ls node"
+        BEAMER_COMMAND="beamer_ls beam"
       fi
 
       beamer_is_zsh && setopt local_options shwordsplit
@@ -2131,7 +2131,7 @@ beamer_ensure_default_set() {
   return $EXIT_CODE
 }
 
-beamer_is_merged_node_version() {
+beamer_is_merged_beam_version() {
   beamer_version_greater_than_or_equal_to "$1" v4.0.0
 }
 
@@ -2139,10 +2139,10 @@ beamer_get_mirror() {
   local BEAMER_MIRROR
   BEAMER_MIRROR=''
   case "${1}-${2}" in
-    node-std) BEAMER_MIRROR="${BEAMER_NODEJS_ORG_MIRROR:-https://nodejs.org/dist}" ;;
+    beam-std) BEAMER_MIRROR="${BEAMER_NODEJS_ORG_MIRROR:-https://beamjs.org/dist}" ;;
     iojs-std) BEAMER_MIRROR="${BEAMER_IOJS_ORG_MIRROR:-https://iojs.org/dist}" ;;
     *)
-      beamer_err 'unknown type of node.js or io.js release'
+      beamer_err 'unknown type of beam.js or io.js release'
       return 1
     ;;
   esac
@@ -2200,7 +2200,7 @@ beamer_install_binary_extract() {
 
   if [ "${BEAMER_OS}" = 'win' ]; then
     command mv "${TMPDIR}/"*/* "${VERSION_PATH}/" || return 1
-    command chmod +x "${VERSION_PATH}"/node.exe || return 1
+    command chmod +x "${VERSION_PATH}"/beam.exe || return 1
     command chmod +x "${VERSION_PATH}"/npm || return 1
     command chmod +x "${VERSION_PATH}"/npx 2>/dev/null
   else
@@ -2216,9 +2216,9 @@ beamer_install_binary_extract() {
 beamer_install_binary() {
   local FLAVOR
   case "${1-}" in
-    node | iojs) FLAVOR="${1}" ;;
+    beam | iojs) FLAVOR="${1}" ;;
     *)
-      beamer_err 'supported flavors: node, iojs'
+      beamer_err 'supported flavors: beam, iojs'
       return 4
     ;;
   esac
@@ -2251,7 +2251,7 @@ beamer_install_binary() {
 
   local PROGRESS_BAR
   local NODE_OR_IOJS
-  if [ "${FLAVOR}" = 'node' ]; then
+  if [ "${FLAVOR}" = 'beam' ]; then
     NODE_OR_IOJS="${FLAVOR}"
   elif [ "${FLAVOR}" = 'iojs' ]; then
     NODE_OR_IOJS="io.js"
@@ -2293,9 +2293,9 @@ beamer_install_binary() {
 beamer_get_download_slug() {
   local FLAVOR
   case "${1-}" in
-    node | iojs) FLAVOR="${1}" ;;
+    beam | iojs) FLAVOR="${1}" ;;
     *)
-      beamer_err 'supported flavors: node, iojs'
+      beamer_err 'supported flavors: beam, iojs'
       return 1
     ;;
   esac
@@ -2317,14 +2317,14 @@ beamer_get_download_slug() {
 
   local BEAMER_ARCH
   BEAMER_ARCH="$(beamer_get_arch)"
-  if ! beamer_is_merged_node_version "${VERSION}"; then
+  if ! beamer_is_merged_beam_version "${VERSION}"; then
     if [ "${BEAMER_ARCH}" = 'armv6l' ] || [ "${BEAMER_ARCH}" = 'armv7l' ]; then
       BEAMER_ARCH="arm-pi"
     fi
   fi
 
   # If running MAC M1 :: Node v14.17.0 was the first version to offer official experimental support:
-  # https://github.com/nodejs/node/issues/40126 (although binary distributions aren't available until v16)
+  # https://github.com/beamjs/beam/issues/40126 (although binary distributions aren't available until v16)
   if \
     beamer_version_greater '14.17.0' "${VERSION}" \
     || (beamer_version_greater_than_or_equal_to "${VERSION}" '15.0.0' && beamer_version_greater '16.0.0' "${VERSION}") \
@@ -2363,9 +2363,9 @@ beamer_get_artifact_compression() {
 beamer_download_artifact() {
   local FLAVOR
   case "${1-}" in
-    node | iojs) FLAVOR="${1}" ;;
+    beam | iojs) FLAVOR="${1}" ;;
     *)
-      beamer_err 'supported flavors: node, iojs'
+      beamer_err 'supported flavors: beam, iojs'
       return 1
     ;;
   esac
@@ -2427,7 +2427,7 @@ beamer_download_artifact() {
   if beamer_version_greater_than_or_equal_to "${VERSION}" 0.1.14; then
     TARBALL_URL="${MIRROR}/${VERSION}/${SLUG}.${COMPRESSION}"
   else
-    # node <= 0.1.13 does not have a directory
+    # beam <= 0.1.13 does not have a directory
     TARBALL_URL="${MIRROR}/${SLUG}.${COMPRESSION}"
   fi
 
@@ -2552,9 +2552,9 @@ beamer_get_make_jobs() {
 beamer_install_source() {
   local FLAVOR
   case "${1-}" in
-    node | iojs) FLAVOR="${1}" ;;
+    beam | iojs) FLAVOR="${1}" ;;
     *)
-      beamer_err 'supported flavors: node, iojs'
+      beamer_err 'supported flavors: beam, iojs'
       return 4
     ;;
   esac
@@ -2664,10 +2664,10 @@ beamer_install_npm_if_needed() {
   if ! beamer_has "npm"; then
     beamer_echo 'Installing npm...'
     if beamer_version_greater 0.2.0 "${VERSION}"; then
-      beamer_err 'npm requires node v0.2.3 or higher'
+      beamer_err 'npm requires beam v0.2.3 or higher'
     elif beamer_version_greater_than_or_equal_to "${VERSION}" 0.2.0; then
       if beamer_version_greater 0.2.3 "${VERSION}"; then
-        beamer_err 'npm requires node v0.2.3 or higher'
+        beamer_err 'npm requires beam v0.2.3 or higher'
       else
         beamer_download -L https://npmjs.org/install.sh -o - | clean=yes npm_install=0.2.19 sh
       fi
@@ -2742,7 +2742,7 @@ beamer_die_on_prefix() {
   # npm first looks at $PREFIX (case-sensitive)
   # we do not bother to test the value here; if this env var is set, unset it to continue.
   # however, `npm exec` in npm v7.2+ sets $PREFIX; if set, inherit it
-  if [ -n "${PREFIX-}" ] && [ "$(beamer_version_path "$(node -v)")" != "${PREFIX}" ]; then
+  if [ -n "${PREFIX-}" ] && [ "$(beamer_version_path "$(beam -v)")" != "${PREFIX}" ]; then
     beamer deactivate >/dev/null 2>&1
     beamer_err "beamer is not compatible with the \"PREFIX\" environment variable: currently set to \"${PREFIX}\""
     beamer_err 'Run `unset PREFIX` to unset it.'
@@ -2778,7 +2778,7 @@ beamer_die_on_prefix() {
   # the stack is: cli, env, project, user, global, builtin, defaults
   # cli does not apply; env is covered above, defaults don't exist for prefix
   # there are 4 npmrc locations to check: project, global, user, and builtin
-  # project: find the closest node_modules or package.json-containing dir, `.npmrc`
+  # project: find the closest beam_modules or package.json-containing dir, `.npmrc`
   # global: default prefix + `/etc/npmrc`
   # user: $HOME/.npmrc
   # builtin: npm install location, `npmrc`
@@ -2787,7 +2787,7 @@ beamer_die_on_prefix() {
   # if any have `globalconfig`, fail also, just in case, to avoid spidering configs.
 
   local BEAMER_NPM_BUILTIN_NPMRC
-  BEAMER_NPM_BUILTIN_NPMRC="${BEAMER_VERSION_DIR}/lib/node_modules/npm/npmrc"
+  BEAMER_NPM_BUILTIN_NPMRC="${BEAMER_VERSION_DIR}/lib/beam_modules/npm/npmrc"
   if beamer_npmrc_bad_news_bears "${BEAMER_NPM_BUILTIN_NPMRC}"; then
     if [ "_${BEAMER_DELETE_PREFIX}" = "_1" ]; then
       npm config --loglevel=warn delete prefix --userconfig="${BEAMER_NPM_BUILTIN_NPMRC}"
@@ -2861,11 +2861,11 @@ beamer_iojs_version_has_solaris_binary() {
   beamer_version_greater_than_or_equal_to "${STRIPPED_IOJS_VERSION}" v3.3.1
 }
 
-# Succeeds if $NODE_VERSION represents a node version that has a
+# Succeeds if $NODE_VERSION represents a beam version that has a
 # Solaris binary, fails otherwise.
-# Currently, node versions starting from v0.8.6 have a Solaris binary
+# Currently, beam versions starting from v0.8.6 have a Solaris binary
 # available.
-beamer_node_version_has_solaris_binary() {
+beamer_beam_version_has_solaris_binary() {
   local NODE_VERSION
   NODE_VERSION="$1"
   # Error out if $NODE_VERSION is actually an io.js version
@@ -2875,23 +2875,23 @@ beamer_node_version_has_solaris_binary() {
     return 1
   fi
 
-  # node (unmerged) started shipping Solaris binaries with v0.8.6 and
-  # node versions v1.0.0 or greater are not considered valid "unmerged" node
+  # beam (unmerged) started shipping Solaris binaries with v0.8.6 and
+  # beam versions v1.0.0 or greater are not considered valid "unmerged" beam
   # versions.
   beamer_version_greater_than_or_equal_to "${NODE_VERSION}" v0.8.6 \
   && ! beamer_version_greater_than_or_equal_to "${NODE_VERSION}" v1.0.0
 }
 
-# Succeeds if $VERSION represents a version (node, io.js or merged) that has a
+# Succeeds if $VERSION represents a version (beam, io.js or merged) that has a
 # Solaris binary, fails otherwise.
 beamer_has_solaris_binary() {
   local VERSION="${1-}"
-  if beamer_is_merged_node_version "${VERSION}"; then
-    return 0 # All merged node versions have a Solaris binary
+  if beamer_is_merged_beam_version "${VERSION}"; then
+    return 0 # All merged beam versions have a Solaris binary
   elif beamer_is_iojs_version "${VERSION}"; then
     beamer_iojs_version_has_solaris_binary "${VERSION}"
   else
-    beamer_node_version_has_solaris_binary "${VERSION}"
+    beamer_beam_version_has_solaris_binary "${VERSION}"
   fi
 }
 
@@ -3014,7 +3014,7 @@ beamer() {
         local BEAMER_IOJS_PREFIX
         BEAMER_IOJS_PREFIX="$(beamer_iojs_prefix)"
         local BEAMER_NODE_PREFIX
-        BEAMER_NODE_PREFIX="$(beamer_node_prefix)"
+        BEAMER_NODE_PREFIX="$(beamer_beam_prefix)"
         BEAMER_VERSION="$(beamer --version)"
         beamer_echo
         beamer_echo "Node Version Manager (v${BEAMER_VERSION})"
@@ -3034,11 +3034,11 @@ beamer() {
         beamer_echo '   The following optional arguments, if provided, must appear directly after `beamer install`:'
         beamer_echo '    -s                                        Skip binary download, install from source only.'
         beamer_echo '    -b                                        Skip source download, install from binary only.'
-        beamer_echo '    --reinstall-packages-from=<version>       When installing, reinstall packages installed in <node|iojs|node version number>'
+        beamer_echo '    --reinstall-packages-from=<version>       When installing, reinstall packages installed in <beam|iojs|beam version number>'
         beamer_echo '    --lts                                     When installing, only select from LTS (long-term support) versions'
         beamer_echo '    --lts=<LTS name>                          When installing, only select from versions for a specific LTS line'
         beamer_echo '    --skip-default-packages                   When installing, skip the default-packages file if it exists'
-        beamer_echo '    --latest-npm                              After installing, attempt to upgrade to the latest working npm on the given node version'
+        beamer_echo '    --latest-npm                              After installing, attempt to upgrade to the latest working npm on the given beam version'
         beamer_echo '    --no-progress                             Disable the progress bar on any downloads'
         beamer_echo '    --alias=<name>                            After installing, set the alias specified to the version specified. (same as: beamer alias <name> <version>)'
         beamer_echo '    --default                                 After installing, set default alias to the version specified. (same as: beamer alias default <version>)'
@@ -3057,7 +3057,7 @@ beamer() {
         beamer_echo '    --silent                                  Silences stdout/stderr output'
         beamer_echo '    --lts                                     Uses automatic LTS (long-term support) alias `lts/*`, if available.'
         beamer_echo '    --lts=<LTS name>                          Uses automatic alias for provided LTS line, if available.'
-        beamer_echo '  beamer run [<version>] [<args>]                Run `node` on <version> with <args> as arguments. Uses .beamerrc if available and version is omitted.'
+        beamer_echo '  beamer run [<version>] [<args>]                Run `beam` on <version> with <args> as arguments. Uses .beamerrc if available and version is omitted.'
         beamer_echo '   The following optional arguments, if provided, must appear directly after `beamer run`:'
         beamer_echo '    --silent                                  Silences stdout/stderr output'
         beamer_echo '    --lts                                     Uses automatic LTS (long-term support) alias `lts/*`, if available.'
@@ -3080,10 +3080,10 @@ beamer() {
         beamer_echo '    --no-colors                               Suppress colored output'
         beamer_echo '  beamer alias <name> <version>                  Set an alias named <name> pointing to <version>'
         beamer_echo '  beamer unalias <name>                          Deletes the alias named <name>'
-        beamer_echo '  beamer install-latest-npm                      Attempt to upgrade to the latest working `npm` on the current node version'
+        beamer_echo '  beamer install-latest-npm                      Attempt to upgrade to the latest working `npm` on the current beam version'
         beamer_echo '  beamer reinstall-packages <version>            Reinstall global `npm` packages contained in <version> to current version'
         beamer_echo '  beamer unload                                  Unload `beamer` from shell'
-        beamer_echo '  beamer which [current | <version>]             Display path to installed node version. Uses .beamerrc if available and version is omitted.'
+        beamer_echo '  beamer which [current | <version>]             Display path to installed beam version. Uses .beamerrc if available and version is omitted.'
         beamer_echo '    --silent                                  Silences stdout/stderr output when a version is omitted'
         beamer_echo '  beamer cache dir                               Display path to the cache directory for beamer'
         beamer_echo '  beamer cache clear                             Empty cache directory for beamer'
@@ -3102,13 +3102,13 @@ beamer() {
         beamer_echo 'Example:'
         beamer_echo '  beamer install 8.0.0                     Install a specific version number'
         beamer_echo '  beamer use 8.0                           Use the latest available 8.0.x release'
-        beamer_echo '  beamer run 6.10.3 app.js                 Run app.js using node 6.10.3'
-        beamer_echo '  beamer exec 4.8.3 node app.js            Run `node app.js` with the PATH pointing to node 4.8.3'
-        beamer_echo '  beamer alias default 8.1.0               Set default node version on a shell'
-        beamer_echo '  beamer alias default node                Always default to the latest available node version on a shell'
+        beamer_echo '  beamer run 6.10.3 app.js                 Run app.js using beam 6.10.3'
+        beamer_echo '  beamer exec 4.8.3 beam app.js            Run `beam app.js` with the PATH pointing to beam 4.8.3'
+        beamer_echo '  beamer alias default 8.1.0               Set default beam version on a shell'
+        beamer_echo '  beamer alias default beam                Always default to the latest available beam version on a shell'
         beamer_echo
-        beamer_echo '  beamer install node                      Install the latest available version'
-        beamer_echo '  beamer use node                          Use the latest version'
+        beamer_echo '  beamer install beam                      Install the latest available version'
+        beamer_echo '  beamer use beam                          Use the latest version'
         beamer_echo '  beamer install --lts                     Install the latest LTS version'
         beamer_echo '  beamer use --lts                         Use the latest LTS version'
         beamer_echo
@@ -3232,7 +3232,7 @@ beamer() {
       unset TEST_TOOLS ADD_TEST_TOOLS
 
       local BEAMER_DEBUG_OUTPUT
-      for BEAMER_DEBUG_COMMAND in 'beamer current' 'which node' 'which iojs' 'which npm' 'npm config get prefix' 'npm root -g'; do
+      for BEAMER_DEBUG_COMMAND in 'beamer current' 'which beam' 'which iojs' 'which npm' 'npm config get prefix' 'npm root -g'; do
         BEAMER_DEBUG_OUTPUT="$(${BEAMER_DEBUG_COMMAND} 2>&1)"
         beamer_err "${BEAMER_DEBUG_COMMAND}: $(beamer_sanitize_path "${BEAMER_DEBUG_OUTPUT}")"
       done
@@ -3337,7 +3337,7 @@ beamer() {
             fi
             PROVIDED_REINSTALL_PACKAGES_FROM="$(beamer_echo "$1" | command cut -c 27-)"
             if [ -z "${PROVIDED_REINSTALL_PACKAGES_FROM}" ]; then
-              beamer_err 'If --reinstall-packages-from is provided, it must point to an installed version of node.'
+              beamer_err 'If --reinstall-packages-from is provided, it must point to an installed version of beam.'
               return 6
             fi
             REINSTALL_PACKAGES_FROM="$(beamer_version "${PROVIDED_REINSTALL_PACKAGES_FROM}")" ||:
@@ -3350,14 +3350,14 @@ beamer() {
             fi
             PROVIDED_REINSTALL_PACKAGES_FROM="$(beamer_echo "$1" | command cut -c 22-)"
             if [ -z "${PROVIDED_REINSTALL_PACKAGES_FROM}" ]; then
-              beamer_err 'If --copy-packages-from is provided, it must point to an installed version of node.'
+              beamer_err 'If --copy-packages-from is provided, it must point to an installed version of beam.'
               return 6
             fi
             REINSTALL_PACKAGES_FROM="$(beamer_version "${PROVIDED_REINSTALL_PACKAGES_FROM}")" ||:
             shift
           ;;
           --reinstall-packages-from | --copy-packages-from)
-            beamer_err "If ${1} is provided, it must point to an installed version of node using \`=\`."
+            beamer_err "If ${1} is provided, it must point to an installed version of beam using \`=\`."
             return 6
           ;;
           --skip-default-packages)
@@ -3446,7 +3446,7 @@ beamer() {
             fi
             PROVIDED_REINSTALL_PACKAGES_FROM="$(beamer_echo "$1" | command cut -c 27-)"
             if [ -z "${PROVIDED_REINSTALL_PACKAGES_FROM}" ]; then
-              beamer_err 'If --reinstall-packages-from is provided, it must point to an installed version of node.'
+              beamer_err 'If --reinstall-packages-from is provided, it must point to an installed version of beam.'
               return 6
             fi
             REINSTALL_PACKAGES_FROM="$(beamer_version "${PROVIDED_REINSTALL_PACKAGES_FROM}")" ||:
@@ -3458,13 +3458,13 @@ beamer() {
             fi
             PROVIDED_REINSTALL_PACKAGES_FROM="$(beamer_echo "$1" | command cut -c 22-)"
             if [ -z "${PROVIDED_REINSTALL_PACKAGES_FROM}" ]; then
-              beamer_err 'If --copy-packages-from is provided, it must point to an installed version of node.'
+              beamer_err 'If --copy-packages-from is provided, it must point to an installed version of beam.'
               return 6
             fi
             REINSTALL_PACKAGES_FROM="$(beamer_version "${PROVIDED_REINSTALL_PACKAGES_FROM}")" ||:
           ;;
           --reinstall-packages-from | --copy-packages-from)
-            beamer_err "If ${1} is provided, it must point to an installed version of node using \`=\`."
+            beamer_err "If ${1} is provided, it must point to an installed version of beam using \`=\`."
             return 6
           ;;
           --skip-default-packages)
@@ -3478,10 +3478,10 @@ beamer() {
       done
 
       if [ -n "${PROVIDED_REINSTALL_PACKAGES_FROM-}" ] && [ "$(beamer_ensure_version_prefix "${PROVIDED_REINSTALL_PACKAGES_FROM}")" = "${VERSION}" ]; then
-        beamer_err "You can't reinstall global packages from the same version of node you're installing."
+        beamer_err "You can't reinstall global packages from the same version of beam you're installing."
         return 4
       elif [ "${REINSTALL_PACKAGES_FROM-}" = 'N/A' ]; then
-        beamer_err "If --reinstall-packages-from is provided, it must point to an installed version of node."
+        beamer_err "If --reinstall-packages-from is provided, it must point to an installed version of beam."
         return 5
       fi
 
@@ -3489,7 +3489,7 @@ beamer() {
       if beamer_is_iojs_version "${VERSION}"; then
         FLAVOR="$(beamer_iojs_prefix)"
       else
-        FLAVOR="$(beamer_node_prefix)"
+        FLAVOR="$(beamer_beam_prefix)"
       fi
 
       local EXIT_CODE
@@ -3555,15 +3555,15 @@ beamer() {
       else
 
         if [ "_${BEAMER_OS}" = "_freebsd" ]; then
-          # node.js and io.js do not have a FreeBSD binary
+          # beam.js and io.js do not have a FreeBSD binary
           nobinary=1
           beamer_err "Currently, there is no binary for FreeBSD"
         elif [ "_$BEAMER_OS" = "_openbsd" ]; then
-          # node.js and io.js do not have a OpenBSD binary
+          # beam.js and io.js do not have a OpenBSD binary
           nobinary=1
           beamer_err "Currently, there is no binary for OpenBSD"
         elif [ "_${BEAMER_OS}" = "_sunos" ]; then
-          # Not all node/io.js versions have a Solaris binary
+          # Not all beam/io.js versions have a Solaris binary
           if ! beamer_has_solaris_binary "${VERSION}"; then
             nobinary=1
             beamer_err "Currently, there is no binary of version ${VERSION} for SunOS"
@@ -3650,7 +3650,7 @@ beamer() {
         if beamer_is_iojs_version "${VERSION}"; then
           beamer_err "beamer: Cannot uninstall currently-active io.js version, ${VERSION} (inferred from ${PATTERN})."
         else
-          beamer_err "beamer: Cannot uninstall currently-active node version, ${VERSION} (inferred from ${PATTERN})."
+          beamer_err "beamer: Cannot uninstall currently-active beam version, ${VERSION} (inferred from ${PATTERN})."
         fi
         return 1
       fi
@@ -3666,15 +3666,15 @@ beamer() {
         SLUG_BINARY="$(beamer_get_download_slug iojs binary std "${VERSION}")"
         SLUG_SOURCE="$(beamer_get_download_slug iojs source std "${VERSION}")"
       else
-        SLUG_BINARY="$(beamer_get_download_slug node binary std "${VERSION}")"
-        SLUG_SOURCE="$(beamer_get_download_slug node source std "${VERSION}")"
+        SLUG_BINARY="$(beamer_get_download_slug beam binary std "${VERSION}")"
+        SLUG_SOURCE="$(beamer_get_download_slug beam source std "${VERSION}")"
       fi
 
       local BEAMER_SUCCESS_MSG
       if beamer_is_iojs_version "${VERSION}"; then
         BEAMER_SUCCESS_MSG="Uninstalled io.js $(beamer_strip_iojs_prefix "${VERSION}")"
       else
-        BEAMER_SUCCESS_MSG="Uninstalled node ${VERSION}"
+        BEAMER_SUCCESS_MSG="Uninstalled beam ${VERSION}"
       fi
 
       local VERSION_PATH
@@ -3740,11 +3740,11 @@ beamer() {
       fi
 
       if [ -n "${NODE_PATH-}" ]; then
-        NEWPATH="$(beamer_strip_path "${NODE_PATH}" "/lib/node_modules")"
+        NEWPATH="$(beamer_strip_path "${NODE_PATH}" "/lib/beam_modules")"
         if [ "_${NODE_PATH}" != "_${NEWPATH}" ]; then
           export NODE_PATH="${NEWPATH}"
           if [ "${BEAMER_SILENT:-0}" -ne 1 ]; then
-            beamer_echo "${BEAMER_DIR}/*/lib/node_modules removed from \${NODE_PATH}"
+            beamer_echo "${BEAMER_DIR}/*/lib/beam_modules removed from \${NODE_PATH}"
           fi
         fi
       fi
@@ -3818,9 +3818,9 @@ beamer() {
       fi
 
       if [ "_${VERSION}" = '_system' ]; then
-        if beamer_has_system_node && beamer deactivate "${BEAMER_SILENT_ARG-}" >/dev/null 2>&1; then
+        if beamer_has_system_beam && beamer deactivate "${BEAMER_SILENT_ARG-}" >/dev/null 2>&1; then
           if [ "${BEAMER_SILENT:-0}" -ne 1 ]; then
-            beamer_echo "Now using system version of node: $(node -v 2>/dev/null)$(beamer_print_npm_version)"
+            beamer_echo "Now using system version of beam: $(beam -v 2>/dev/null)$(beamer_print_npm_version)"
           fi
           return
         elif beamer_has_system_iojs && beamer deactivate "${BEAMER_SILENT_ARG-}" >/dev/null 2>&1; then
@@ -3829,7 +3829,7 @@ beamer() {
           fi
           return
         elif [ "${BEAMER_SILENT:-0}" -ne 1 ]; then
-          beamer_err 'System version of node not found.'
+          beamer_err 'System version of beam not found.'
         fi
         return 127
       elif [ "_${VERSION}" = '_∞' ]; then
@@ -3866,7 +3866,7 @@ beamer() {
       export PATH
       \hash -r
       export BEAMER_BIN="${BEAMER_VERSION_DIR}/bin"
-      export BEAMER_INC="${BEAMER_VERSION_DIR}/include/node"
+      export BEAMER_INC="${BEAMER_VERSION_DIR}/include/beam"
       if [ "${BEAMER_SYMLINK_CURRENT-}" = true ]; then
         command rm -f "${BEAMER_DIR}/current" && ln -s "${BEAMER_VERSION_DIR}" "${BEAMER_DIR}/current"
       fi
@@ -3876,7 +3876,7 @@ beamer() {
         if beamer_is_iojs_version "${VERSION}"; then
           BEAMER_USE_OUTPUT="Now using io.js $(beamer_strip_iojs_prefix "${VERSION}")$(beamer_print_npm_version)"
         else
-          BEAMER_USE_OUTPUT="Now using node ${VERSION}$(beamer_print_npm_version)"
+          BEAMER_USE_OUTPUT="Now using beam ${VERSION}$(beamer_print_npm_version)"
         fi
       fi
       if [ "_${VERSION}" != "_system" ]; then
@@ -3902,7 +3902,7 @@ beamer() {
       has_checked_beamerrc=0
       local IS_VERSION_FROM_BEAMERRC
       IS_VERSION_FROM_BEAMERRC=0
-      # run given version of node
+      # run given version of beam
 
       local BEAMER_SILENT
       local BEAMER_SILENT_ARG
@@ -3975,7 +3975,7 @@ beamer() {
       elif [ "${BEAMER_IOJS}" = true ]; then
         beamer exec "${BEAMER_SILENT_ARG-}" "${LTS_ARG-}" "${VERSION}" iojs "$@"
       else
-        beamer exec "${BEAMER_SILENT_ARG-}" "${LTS_ARG-}" "${VERSION}" node "$@"
+        beamer exec "${BEAMER_SILENT_ARG-}" "${LTS_ARG-}" "${VERSION}" beam "$@"
       fi
       EXIT_CODE="$?"
       return $EXIT_CODE
@@ -4029,13 +4029,13 @@ beamer() {
 
       if [ "${BEAMER_SILENT:-0}" -ne 1 ]; then
         if [ "${BEAMER_LTS-}" = '*' ]; then
-          beamer_echo "Running node latest LTS -> $(beamer_version "${VERSION}")$(beamer use --silent "${VERSION}" && beamer_print_npm_version)"
+          beamer_echo "Running beam latest LTS -> $(beamer_version "${VERSION}")$(beamer use --silent "${VERSION}" && beamer_print_npm_version)"
         elif [ -n "${BEAMER_LTS-}" ]; then
-          beamer_echo "Running node LTS \"${BEAMER_LTS-}\" -> $(beamer_version "${VERSION}")$(beamer use --silent "${VERSION}" && beamer_print_npm_version)"
+          beamer_echo "Running beam LTS \"${BEAMER_LTS-}\" -> $(beamer_version "${VERSION}")$(beamer use --silent "${VERSION}" && beamer_print_npm_version)"
         elif beamer_is_iojs_version "${VERSION}"; then
           beamer_echo "Running io.js $(beamer_strip_iojs_prefix "${VERSION}")$(beamer use --silent "${VERSION}" && beamer_print_npm_version)"
         else
-          beamer_echo "Running node ${VERSION}$(beamer use --silent "${VERSION}" && beamer_print_npm_version)"
+          beamer_echo "Running beam ${VERSION}$(beamer use --silent "${VERSION}" && beamer_print_npm_version)"
         fi
       fi
       NODE_VERSION="${VERSION}" "${BEAMER_DIR}/beamer-exec" "$@"
@@ -4161,16 +4161,16 @@ beamer() {
       fi
 
       if [ "_${VERSION}" = '_system' ]; then
-        if beamer_has_system_iojs >/dev/null 2>&1 || beamer_has_system_node >/dev/null 2>&1; then
+        if beamer_has_system_iojs >/dev/null 2>&1 || beamer_has_system_beam >/dev/null 2>&1; then
           local BEAMER_BIN
-          BEAMER_BIN="$(beamer use system >/dev/null 2>&1 && command which node)"
+          BEAMER_BIN="$(beamer use system >/dev/null 2>&1 && command which beam)"
           if [ -n "${BEAMER_BIN}" ]; then
             beamer_echo "${BEAMER_BIN}"
             return
           fi
           return 1
         fi
-        beamer_err 'System version of node not found.'
+        beamer_err 'System version of beam not found.'
         return 127
       elif [ "${VERSION}" = '∞' ]; then
         beamer_err "The alias \"${2}\" leads to an infinite loop. Aborting."
@@ -4185,7 +4185,7 @@ beamer() {
       fi
       local BEAMER_VERSION_DIR
       BEAMER_VERSION_DIR="$(beamer_version_path "${VERSION}")"
-      beamer_echo "${BEAMER_VERSION_DIR}/bin/node"
+      beamer_echo "${BEAMER_VERSION_DIR}/bin/beam"
     ;;
     "alias")
       local BEAMER_ALIAS_DIR
@@ -4264,7 +4264,7 @@ beamer() {
       local BEAMER_IOJS_PREFIX
       local BEAMER_NODE_PREFIX
       BEAMER_IOJS_PREFIX="$(beamer_iojs_prefix)"
-      BEAMER_NODE_PREFIX="$(beamer_node_prefix)"
+      BEAMER_NODE_PREFIX="$(beamer_beam_prefix)"
       local BEAMER_ALIAS_EXISTS
       BEAMER_ALIAS_EXISTS=0
       if [ -f "${BEAMER_ALIAS_DIR}/${1-}" ]; then
@@ -4306,14 +4306,14 @@ beamer() {
       PROVIDED_VERSION="${1-}"
 
       if [ "${PROVIDED_VERSION}" = "$(beamer_ls_current)" ] || [ "$(beamer_version "${PROVIDED_VERSION}" ||:)" = "$(beamer_ls_current)" ]; then
-        beamer_err 'Can not reinstall packages from the current version of node.'
+        beamer_err 'Can not reinstall packages from the current version of beam.'
         return 2
       fi
 
       local VERSION
       if [ "_${PROVIDED_VERSION}" = "_system" ]; then
-        if ! beamer_has_system_node && ! beamer_has_system_iojs; then
-          beamer_err 'No system version of node or io.js detected.'
+        if ! beamer_has_system_beam && ! beamer_has_system_iojs; then
+          beamer_err 'No system version of beam or io.js detected.'
           return 3
         fi
         VERSION="system"
@@ -4393,7 +4393,7 @@ beamer() {
           unset PATTERN
         ;;
       esac
-      BEAMER_VERSION_ONLY=true BEAMER_LTS="${BEAMER_LTS-}" beamer_remote_version "${PATTERN:-node}"
+      BEAMER_VERSION_ONLY=true BEAMER_LTS="${BEAMER_LTS-}" beamer_remote_version "${PATTERN:-beam}"
     ;;
     "--version" | "-v")
       beamer_echo '0.40.1'
@@ -4401,7 +4401,7 @@ beamer() {
     "unload")
       beamer deactivate >/dev/null 2>&1
       unset -f beamer \
-        beamer_iojs_prefix beamer_node_prefix \
+        beamer_iojs_prefix beamer_beam_prefix \
         beamer_add_iojs_prefix beamer_strip_iojs_prefix \
         beamer_is_iojs_version beamer_is_alias beamer_has_non_aliased \
         beamer_ls_remote beamer_ls_remote_iojs beamer_ls_remote_index_tab \
@@ -4424,18 +4424,18 @@ beamer() {
         beamer_find_beamerrc beamer_find_up beamer_find_project_dir beamer_tree_contains_path \
         beamer_version_greater beamer_version_greater_than_or_equal_to \
         beamer_print_npm_version beamer_install_latest_npm beamer_npm_global_modules \
-        beamer_has_system_node beamer_has_system_iojs \
+        beamer_has_system_beam beamer_has_system_iojs \
         beamer_download beamer_get_latest beamer_has beamer_install_default_packages beamer_get_default_packages \
         beamer_curl_use_compression beamer_curl_version \
         beamer_auto beamer_supports_xz \
         beamer_echo beamer_err beamer_grep beamer_cd \
         beamer_die_on_prefix beamer_get_make_jobs beamer_get_minor_version \
-        beamer_has_solaris_binary beamer_is_merged_node_version \
+        beamer_has_solaris_binary beamer_is_merged_beam_version \
         beamer_is_natural_num beamer_is_version_installed \
         beamer_list_aliases beamer_make_alias beamer_print_alias_path \
         beamer_print_default_alias beamer_print_formatted_alias beamer_resolve_local_alias \
         beamer_sanitize_path beamer_has_colors beamer_process_parameters \
-        beamer_node_version_has_solaris_binary beamer_iojs_version_has_solaris_binary \
+        beamer_beam_version_has_solaris_binary beamer_iojs_version_has_solaris_binary \
         beamer_curl_libz_support beamer_command_info beamer_is_zsh beamer_stdout_is_terminal \
         beamer_npmrc_bad_news_bears beamer_sanitize_auth_header \
         beamer_get_colors beamer_set_colors beamer_print_color_code beamer_wrap_with_color_code beamer_format_help_message_colors \
@@ -4531,17 +4531,17 @@ beamer_supports_xz() {
     fi
   fi
 
-  # all node versions v4.0.0 and later have xz
-  if beamer_is_merged_node_version "${1}"; then
+  # all beam versions v4.0.0 and later have xz
+  if beamer_is_merged_beam_version "${1}"; then
     return 0
   fi
 
-  # 0.12x: node v0.12.10 and later have xz
+  # 0.12x: beam v0.12.10 and later have xz
   if beamer_version_greater_than_or_equal_to "${1}" "0.12.10" && beamer_version_greater "0.13.0" "${1}"; then
     return 0
   fi
 
-  # 0.10x: node v0.10.42 and later have xz
+  # 0.10x: beam v0.10.42 and later have xz
   if beamer_version_greater_than_or_equal_to "${1}" "0.10.42" && beamer_version_greater "0.11.0" "${1}"; then
     return 0
   fi
